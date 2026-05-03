@@ -2,6 +2,5 @@
   "name": "Bitcoin Miner Card",
   "content_in_root": false,
   "filename": "bitcoin-miner-card.js",
-  "type": "plugin",
   "render_readme": true
 }

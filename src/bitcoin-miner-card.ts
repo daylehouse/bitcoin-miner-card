@@ -473,9 +473,9 @@ export class BitcoinMinerCard extends LitElement {
 
     .current-row {
       position: absolute;
-      left: 12.1%;
-      top: 79.5%;
-      width: 44.8%;
+      left: 11.9%;
+      top: 79.8%;
+      width: 45.6%;
       display: grid;
       grid-template-columns: 1fr auto;
       gap: 2%;
@@ -493,10 +493,10 @@ export class BitcoinMinerCard extends LitElement {
 
     .device-values {
       position: absolute;
-      left: 70.2%;
-      top: 44.8%;
-      width: 21.6%;
-      height: 25.4%;
+      left: 70.9%;
+      top: 44.9%;
+      width: 20.8%;
+      height: 25.2%;
       display: grid;
       grid-template-rows: repeat(4, 1fr);
     }
@@ -504,7 +504,7 @@ export class BitcoinMinerCard extends LitElement {
     .stat-value {
       display: flex;
       align-items: center;
-      justify-content: flex-start;
+      justify-content: flex-end;
       font-size: clamp(0.45rem, 0.98vw, 0.88rem);
       font-weight: 700;
       line-height: 1;
@@ -515,7 +515,7 @@ export class BitcoinMinerCard extends LitElement {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      padding-left: 6%;
+      padding-right: 3%;
     }
 
     .stat-value:nth-child(1),
@@ -530,19 +530,19 @@ export class BitcoinMinerCard extends LitElement {
     }
 
     .stat-value:nth-child(1) {
-      transform: translateY(-4%);
-    }
-
-    .stat-value:nth-child(2) {
       transform: translateY(-2%);
     }
 
+    .stat-value:nth-child(2) {
+      transform: translateY(-1%);
+    }
+
     .stat-value:nth-child(3) {
-      transform: translateY(2%);
+      transform: translateY(1%);
     }
 
     .stat-value:nth-child(4) {
-      transform: translateY(4%);
+      transform: translateY(2%);
     }
 
     .accent-cyan {
@@ -579,8 +579,8 @@ export class BitcoinMinerCard extends LitElement {
       }
 
       .device-values {
-        left: 69.8%;
-        width: 22.2%;
+        left: 70.5%;
+        width: 21.3%;
       }
     }
 
@@ -609,10 +609,10 @@ export class BitcoinMinerCard extends LitElement {
       }
 
       .device-values {
-        left: 69.8%;
-        top: 45.2%;
-        width: 22.2%;
-        height: 24.8%;
+        left: 70.5%;
+        top: 45.3%;
+        width: 21.3%;
+        height: 24.7%;
       }
 
       .stat-value {

@@ -492,12 +492,11 @@ export class BitcoinMinerCard extends LitElement {
     }
 
     .device-values {
-      position: relative;
       position: absolute;
-      left: 71.4%;
-      top: 45.2%;
-      width: 19.8%;
-      height: 24.6%;
+      left: 70.2%;
+      top: 44.8%;
+      width: 21.6%;
+      height: 25.4%;
       display: grid;
       grid-template-rows: repeat(4, 1fr);
     }
@@ -505,18 +504,45 @@ export class BitcoinMinerCard extends LitElement {
     .stat-value {
       display: flex;
       align-items: center;
-      justify-content: flex-end;
+      justify-content: flex-start;
       font-size: clamp(0.45rem, 0.98vw, 0.88rem);
       font-weight: 700;
       line-height: 1;
       font-family: "Orbitron", "Exo 2", sans-serif;
       text-shadow: 0 0 8px rgba(255, 236, 248, 0.3);
-      text-align: right;
+      text-align: left;
       color: var(--bm-text);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      padding-right: 2%;
+      padding-left: 6%;
+    }
+
+    .stat-value:nth-child(1),
+    .stat-value:nth-child(2) {
+      font-size: clamp(0.42rem, 0.9vw, 0.78rem);
+      transform: translateY(-1%);
+    }
+
+    .stat-value:nth-child(3),
+    .stat-value:nth-child(4) {
+      font-size: clamp(0.46rem, 1.05vw, 0.92rem);
+    }
+
+    .stat-value:nth-child(1) {
+      transform: translateY(-4%);
+    }
+
+    .stat-value:nth-child(2) {
+      transform: translateY(-2%);
+    }
+
+    .stat-value:nth-child(3) {
+      transform: translateY(2%);
+    }
+
+    .stat-value:nth-child(4) {
+      transform: translateY(4%);
     }
 
     .accent-cyan {
@@ -553,8 +579,8 @@ export class BitcoinMinerCard extends LitElement {
       }
 
       .device-values {
-        left: 70.9%;
-        width: 20.8%;
+        left: 69.8%;
+        width: 22.2%;
       }
     }
 
@@ -583,13 +609,23 @@ export class BitcoinMinerCard extends LitElement {
       }
 
       .device-values {
-        left: 70.6%;
-        top: 45.6%;
-        width: 21.4%;
-        height: 24%;
+        left: 69.8%;
+        top: 45.2%;
+        width: 22.2%;
+        height: 24.8%;
       }
 
       .stat-value {
+        font-size: clamp(0.38rem, 1.22vw, 0.6rem);
+      }
+
+      .stat-value:nth-child(1),
+      .stat-value:nth-child(2) {
+        font-size: clamp(0.35rem, 1.08vw, 0.54rem);
+      }
+
+      .stat-value:nth-child(3),
+      .stat-value:nth-child(4) {
         font-size: clamp(0.38rem, 1.22vw, 0.6rem);
       }
     }

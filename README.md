@@ -52,28 +52,6 @@ show_overheat: true
 # base_image: /local/community/bitcoin-miner-card/base.png
 ```
 
-## Development
+## 
 
-- Install dependencies: `npm install`
-- Build: `npm run build`
-- Watch mode: `npm run watch`
-
-## HACS Publishing Notes
-
-- Keep the GitHub repository name aligned with the distributed card filename (`bitcoin-miner-card.js`).
-- Valid naming patterns for plugin scanning are typically `bitcoin-miner-card` or `lovelace-bitcoin-miner-card`.
-- Use GitHub releases for stable versions (recommended for HACS users).
-- Repository-level checks like description, topics, and enabled issues are required on GitHub settings.
-
-## Assets
-
-The build now copies these assets into dist for deployment alongside the card bundle:
-
-- base.png
-- background.png
-- overheat.png
-- stats.png
-
-Overheat mode is activated when temperature_entity is greater than or equal to overheat_threshold.
-
-Legacy asset overrides remain available for compatibility but the card layout now primarily uses base.png.
+Overheat mode is activated when temperature_entity is greater than or equal to overheat_threshold

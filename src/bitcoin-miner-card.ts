@@ -107,7 +107,7 @@ export class BitcoinMinerCard extends LitElement {
           case "miner_name_entity":
             return "Optional sensor. Its state overrides Miner Name text.";
           case "base_image":
-            return "Optional path/URL. Defaults to bundled background.png.";
+            return "Optional path/URL. Defaults to bundled background-v2.png.";
           default:
             return undefined;
         }
@@ -163,7 +163,7 @@ export class BitcoinMinerCard extends LitElement {
     const numericTemp = this.parseNumericState(temperature.value);
     const isOverheat = numericTemp !== null && numericTemp >= threshold;
     const temperatureClass = isOverheat ? "stat-value accent-danger" : "stat-value";
-    const baseImage = this.resolveAssetUrl(this.config.base_image, "background.png");
+    const baseImage = this.resolveAssetUrl(this.config.base_image, "background-v2.png");
     const stageStyle = `--bm-base-image: url('${baseImage}')`;
 
     return html`

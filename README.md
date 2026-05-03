@@ -9,7 +9,7 @@ A custom Lovelace card for Home Assistant focused on monitoring Bitcoin miner te
 - Neon-styled miner status card driven by a single background image template
 - Configurable entities for hashrate, temperature, power, and model
 - State-driven overheat overlay that appears when temperature exceeds threshold
-- Uses bundled background template asset: background.png
+- Uses bundled background template asset: background-v2.png
 - Built-in Home Assistant visual configuration form support
 - Lightweight TypeScript + Lit implementation
 - HACS-compatible repository metadata
@@ -49,7 +49,7 @@ model_entity: sensor.rig_01_model
 overheat_threshold: 85
 show_overheat: true
 # Optional override paths (defaults point to bundled assets next to the card JS)
-# base_image: /local/community/bitcoin-miner-card/background.png
+# base_image: /local/community/bitcoin-miner-card/background-v2.png
 ```
 
 ## Development
@@ -69,6 +69,6 @@ show_overheat: true
 
 The build now copies this asset into dist for deployment alongside the card bundle:
 
-- background.png
+- background-v2.png
 
 Overheat mode is activated when temperature_entity is greater than or equal to overheat_threshold.

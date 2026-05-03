@@ -15,6 +15,7 @@ interface BitcoinMinerCardConfig {
   power_entity?: string;
   model_entity?: string;
   overheat_threshold?: number;
+  base_image?: string;
   background_image?: string;
   overheat_image?: string;
   stats_image?: string;
@@ -114,6 +115,10 @@ export class BitcoinMinerCard extends LitElement {
           flatten: true,
           schema: [
             {
+              name: "base_image",
+              selector: { text: {} }
+            },
+            {
               name: "background_image",
               selector: { text: {} }
             },
@@ -150,6 +155,8 @@ export class BitcoinMinerCard extends LitElement {
             return "Show Overheat Overlay";
           case "background_image":
             return "Background Image URL";
+          case "base_image":
+            return "Base Image URL";
           case "overheat_image":
             return "Overheat Image URL";
           case "stats_image":
@@ -167,11 +174,13 @@ export class BitcoinMinerCard extends LitElement {
           case "overheat_threshold":
             return "Warning overlay appears when temperature is equal to or above this value.";
           case "background_image":
-            return "Optional path or URL. Leave blank to use bundled background.png.";
+            return "Legacy option. Base image is now preferred.";
+          case "base_image":
+            return "Optional path or URL. Leave blank to use bundled base.png.";
           case "overheat_image":
-            return "Optional path or URL. Leave blank to use bundled overheat.png.";
+            return "Legacy option from previous design iteration.";
           case "stats_image":
-            return "Optional path or URL. Leave blank to use bundled stats.png.";
+            return "Legacy option from previous design iteration.";
           default:
             return undefined;
         }
@@ -209,7 +218,7 @@ export class BitcoinMinerCard extends LitElement {
   }
 
   public getCardSize(): number {
-    return 4;
+    return 3;
   }
 
   public getGridOptions(): {
@@ -219,9 +228,9 @@ export class BitcoinMinerCard extends LitElement {
     min_columns: number;
   } {
     return {
-      rows: 5,
-      columns: 9,
-      min_rows: 4,
+      rows: 4,
+      columns: 6,
+      min_rows: 3,
       min_columns: 6
     };
   }
@@ -240,95 +249,61 @@ export class BitcoinMinerCard extends LitElement {
       minerNameState.value !== "-" ? minerNameState.value : this.config.miner_name ?? "Unknown";
     const threshold = this.config.overheat_threshold ?? 85;
     const numericTemp = this.parseNumericState(temperature.value);
-    const isOverheat =
-      (this.config.show_overheat ?? true) &&
-      numericTemp !== null &&
-      numericTemp >= threshold;
-    const backgroundImage = this.resolveAssetUrl(this.config.background_image, "background.png");
-    const overheatImage = this.resolveAssetUrl(this.config.overheat_image, "overheat.png");
-    const statsImage = this.resolveAssetUrl(this.config.stats_image, "stats.png");
+    const isOverheat = numericTemp !== null && numericTemp >= threshold;
+    const baseImage = this.resolveAssetUrl(this.config.base_image, "base.png");
     const temperatureClass = isOverheat ? "value accent-danger" : "value accent-pink";
-    const sceneStyle = `--bm-bg-image: url('${backgroundImage}')`;
-    const statsStyle = `--bm-stats-image: url('${statsImage}')`;
+    const stageStyle = `--bm-base-image: url('${baseImage}')`;
 
     return html`
       <ha-card>
-        <section class="scene" style=${sceneStyle}>
-          <div class="scene-glow"></div>
-          <header class="title-row">
-            <h2>${this.config.title}</h2>
-          </header>
+        <section class="stage" style=${stageStyle}>
+          <div class="legend-row">
+            <span class="legend-item cyan">Hashrate</span>
+            <span class="legend-item pink">Temperature</span>
+          </div>
 
-          <div class="content-grid">
-            <section class="chart-panel">
-              <div class="legend-row">
-                <span class="legend-item cyan">Hashrate</span>
-                <span class="legend-item pink">Temperature</span>
-              </div>
-              <div class="chart-shell">
-                <div class="left-scale">
-                  <span>900</span>
-                  <span>600</span>
-                  <span>300</span>
-                  <span>0</span>
-                </div>
-                <svg class="chart" viewBox="0 0 600 220" preserveAspectRatio="none" role="img" aria-label="Miner trend lines">
-                  <g class="chart-grid">
-                    <line x1="0" y1="40" x2="600" y2="40"></line>
-                    <line x1="0" y1="100" x2="600" y2="100"></line>
-                    <line x1="0" y1="160" x2="600" y2="160"></line>
-                    <line x1="120" y1="0" x2="120" y2="220"></line>
-                    <line x1="240" y1="0" x2="240" y2="220"></line>
-                    <line x1="360" y1="0" x2="360" y2="220"></line>
-                    <line x1="480" y1="0" x2="480" y2="220"></line>
-                  </g>
-                  <polyline
-                    class="line-hashrate"
-                    points="0,135 45,118 90,126 135,116 180,120 225,98 270,108 315,126 360,112 405,133 450,142 495,126 540,129 600,116"
-                  ></polyline>
-                  <polyline
-                    class="line-temp"
-                    points="0,170 45,164 90,145 135,152 180,139 225,129 270,142 315,123 360,109 405,114 450,87 495,102 540,95 600,81"
-                  ></polyline>
-                </svg>
-                <div class="right-scale">
-                  <span>90</span>
-                  <span>70</span>
-                  <span>50</span>
-                  <span>30</span>
-                </div>
-              </div>
-              <div class="axis-row">
-                <span>12:00</span>
-                <span>12:30</span>
-                <span>1:00</span>
-                <span>1:30</span>
-              </div>
-              <div class="current-row">
-                <span class="current cyan">${hashrate.value} ${hashrate.unit}</span>
-                <span class="current pink">${temperature.value} ${temperature.unit}</span>
-              </div>
-            </section>
+          <div class="chart-area">
+            <div class="left-scale">
+              <span>900</span>
+              <span>600</span>
+              <span>300</span>
+              <span>0</span>
+            </div>
+            <svg class="chart" viewBox="0 0 600 220" preserveAspectRatio="none" role="img" aria-label="Miner trend lines">
+              <polyline
+                class="line-hashrate"
+                points="0,135 45,118 90,126 135,116 180,120 225,98 270,108 315,126 360,112 405,133 450,142 495,126 540,129 600,116"
+              ></polyline>
+              <polyline
+                class="line-temp"
+                points="0,170 45,164 90,145 135,152 180,139 225,129 270,142 315,123 360,109 405,114 450,87 495,102 540,95 600,81"
+              ></polyline>
+            </svg>
+            <div class="right-scale">
+              <span>90</span>
+              <span>70</span>
+              <span>50</span>
+              <span>30</span>
+            </div>
+          </div>
 
-            <aside class="miner-panel">
-              ${isOverheat
-                ? html`<img class="overheat-image" src=${overheatImage} alt="Overheat warning" />`
-                : nothing}
+          <div class="axis-row">
+            <span>12:00</span>
+            <span>12:30</span>
+            <span>1:00</span>
+            <span>1:30</span>
+          </div>
 
-              <div class="stat-stack" style=${statsStyle}>
-                <div class="stats-art" role="img" aria-label="Miner stats template"></div>
-                <div class="stat-values">
-                  <span class="stat-value">${minerName}</span>
-                  <span class="stat-value">${model.value || "Unavailable"}</span>
-                  <span class=${`stat-value ${temperatureClass}`}>${temperature.value}${temperature.unit}</span>
-                  <span class="stat-value accent-cyan">${power.value} ${power.unit}</span>
-                </div>
-              </div>
+          <div class="current-row">
+            <span class="current cyan">${hashrate.value} ${hashrate.unit}</span>
+            <span class="current pink">${temperature.value} ${temperature.unit}</span>
+          </div>
 
-              ${isOverheat
-                ? html`<div class="warning-chip">Overheat active (${threshold}${temperature.unit || "°C"})</div>`
-                : nothing}
-            </aside>
+          <div class="device-values">
+            <span class="stat-value">${minerName}</span>
+            <span class="stat-value">${model.value || "Unavailable"}</span>
+            <span class=${`stat-value ${temperatureClass}`}>${temperature.value}${temperature.unit}</span>
+            <span class="stat-value accent-cyan">${power.value} ${power.unit}</span>
           </div>
         </section>
       </ha-card>
@@ -378,103 +353,62 @@ export class BitcoinMinerCard extends LitElement {
       --bm-edge-alt: #42d3ff;
       --bm-danger: #ff8b3d;
       --bm-text: #ffe9fa;
-      --bm-panel: rgba(6, 3, 23, 0.78);
-      --bm-bg-image: none;
-      --bm-stats-image: none;
+      --bm-base-image: none;
       display: block;
     }
 
     ha-card {
       overflow: hidden;
-      border-radius: 34px;
-      background: #0a0818;
+      border-radius: 24px;
+      background: #090615;
       color: var(--bm-text);
-      border: 1px solid rgba(255, 103, 205, 0.58);
-      box-shadow: 0 0 30px rgba(255, 58, 171, 0.38), inset 0 0 26px rgba(60, 160, 255, 0.13);
+      border: 1px solid rgba(255, 103, 205, 0.4);
+      box-shadow: 0 0 20px rgba(255, 58, 171, 0.25);
     }
 
-    .scene {
+    .stage {
       position: relative;
-      padding: 22px 22px 24px;
-      min-height: 360px;
-      background-image:
-        linear-gradient(160deg, rgba(4, 0, 17, 0.53), rgba(8, 1, 22, 0.62)),
-        var(--bm-bg-image);
+      width: 100%;
+      aspect-ratio: 3 / 2;
+      background-image: var(--bm-base-image);
       background-size: cover;
       background-position: center;
-      isolation: isolate;
-    }
-
-    .scene-glow {
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(circle at 20% 75%, rgba(23, 235, 255, 0.16), transparent 42%),
-        radial-gradient(circle at 85% 16%, rgba(255, 78, 147, 0.32), transparent 38%);
-      z-index: -1;
-    }
-
-    .title-row {
-      margin-bottom: 12px;
-      border-bottom: 2px solid rgba(255, 76, 182, 0.72);
-      padding-bottom: 10px;
-    }
-
-    h2 {
-      margin: 0;
-      font-size: clamp(1.25rem, 2.9vw, 2.2rem);
-      font-weight: 800;
-      letter-spacing: 0.07em;
-      font-family: "Orbitron", "Exo 2", sans-serif;
-      text-transform: uppercase;
-      color: #ffc8f0;
-      text-shadow: 0 0 10px rgba(255, 61, 184, 0.7);
-    }
-
-    .content-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.46fr) minmax(0, 0.9fr);
-      gap: 14px;
-      align-items: stretch;
-    }
-
-    .chart-panel {
-      border: 1px solid rgba(255, 124, 214, 0.44);
-      border-radius: 18px;
-      background: var(--bm-panel);
-      padding: 14px 12px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      backdrop-filter: blur(1px);
-      box-shadow: inset 0 0 18px rgba(255, 74, 181, 0.13);
+      overflow: hidden;
     }
 
     .legend-row {
-      display: flex;
-      gap: 16px;
-      font-size: clamp(0.84rem, 1.15vw, 1rem);
+      position: absolute;
+      left: 12.8%;
+      top: 18.4%;
+      display: inline-flex;
+      gap: 1.8%;
+      width: 30%;
+      font-size: clamp(0.45rem, 1.05vw, 0.9rem);
       font-weight: 700;
-      padding-left: 4px;
       font-family: "Exo 2", sans-serif;
     }
 
     .legend-item::before {
       content: "";
       display: inline-block;
-      width: 24px;
-      height: 4px;
+      width: 1.8em;
+      height: 0.28em;
       border-radius: 999px;
-      margin-right: 8px;
+      margin-right: 0.48em;
       vertical-align: middle;
       box-shadow: 0 0 8px currentColor;
     }
 
-    .chart-shell {
+    .chart-area {
+      position: absolute;
+      left: 10.9%;
+      top: 29.4%;
+      width: 47.6%;
+      height: 40.8%;
       display: grid;
-      grid-template-columns: auto 1fr auto;
-      gap: 10px;
+      grid-template-columns: 11% 78% 11%;
       align-items: stretch;
+      gap: 0;
     }
 
     .left-scale,
@@ -483,10 +417,11 @@ export class BitcoinMinerCard extends LitElement {
       flex-direction: column;
       justify-content: space-between;
       font-family: "Orbitron", "Exo 2", sans-serif;
-      font-size: clamp(0.72rem, 1vw, 0.86rem);
+      font-size: clamp(0.45rem, 0.86vw, 0.73rem);
       font-weight: 700;
       color: rgba(255, 207, 245, 0.85);
-      padding: 2px 0;
+      padding: 4% 0;
+      text-shadow: 0 0 6px rgba(255, 120, 220, 0.35);
     }
 
     .legend-item.cyan::before {
@@ -499,15 +434,8 @@ export class BitcoinMinerCard extends LitElement {
 
     .chart {
       width: 100%;
-      height: clamp(180px, 24vw, 238px);
-      border: 1px solid rgba(255, 95, 193, 0.44);
-      border-radius: 12px;
-      background: rgba(8, 6, 20, 0.65);
-    }
-
-    .chart-grid line {
-      stroke: rgba(105, 128, 255, 0.32);
-      stroke-width: 1;
+      height: 100%;
+      background: transparent;
     }
 
     .line-hashrate,
@@ -530,109 +458,65 @@ export class BitcoinMinerCard extends LitElement {
     }
 
     .axis-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: clamp(0.82rem, 1.25vw, 1rem);
+      position: absolute;
+      left: 12%;
+      top: 70.6%;
+      width: 45%;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      font-size: clamp(0.5rem, 0.98vw, 0.86rem);
       font-weight: 700;
       color: rgba(255, 204, 236, 0.92);
       font-family: "Exo 2", sans-serif;
-      padding: 0 2px;
+      text-align: center;
     }
 
     .current-row {
-      margin-top: 2px;
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
+      position: absolute;
+      left: 12.1%;
+      top: 79.5%;
+      width: 44.8%;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 2%;
       font-family: "Orbitron", "Exo 2", sans-serif;
-      font-size: clamp(1rem, 2vw, 1.7rem);
+      font-size: clamp(0.62rem, 1.7vw, 1.5rem);
       font-weight: 700;
     }
 
     .current {
       white-space: nowrap;
       text-shadow: 0 0 8px currentColor;
-    }
-
-    .miner-panel {
-      border: 1px solid rgba(255, 124, 214, 0.44);
-      border-radius: 18px;
-      background: linear-gradient(180deg, rgba(10, 6, 30, 0.28) 0%, rgba(8, 6, 27, 0.88) 34%);
-      padding: 12px 12px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      position: relative;
       overflow: hidden;
-      box-shadow: inset 0 0 18px rgba(255, 74, 181, 0.11);
+      text-overflow: ellipsis;
     }
 
-    .overheat-image {
-      position: absolute;
-      top: 2px;
-      right: 0;
-      left: 0;
-      margin: 0 auto;
-      max-width: 88%;
-      max-height: 96px;
-      object-fit: contain;
-      filter: drop-shadow(0 0 12px rgba(255, 123, 60, 0.8));
-      animation: alarmPulse 1.2s ease-in-out infinite;
-      pointer-events: none;
-      z-index: 2;
-    }
-
-    .stat-stack {
+    .device-values {
       position: relative;
-      width: 98%;
-      aspect-ratio: 596 / 464;
-      border-radius: 10px;
-      overflow: hidden;
-      margin-top: auto;
-      margin-inline: auto;
-    }
-
-    .stats-art {
       position: absolute;
-      inset: 0;
-      background-image: var(--bm-stats-image);
-      background-size: cover;
-      background-position: center;
-      filter: drop-shadow(0 0 10px rgba(255, 81, 202, 0.38));
-    }
-
-    .stat-values {
-      position: absolute;
-      inset: 0;
+      left: 71.4%;
+      top: 45.2%;
+      width: 19.8%;
+      height: 24.6%;
       display: grid;
       grid-template-rows: repeat(4, 1fr);
-      padding: 5.2% 6% 4.6% 50.6%;
-      pointer-events: none;
     }
 
     .stat-value {
       display: flex;
       align-items: center;
-      justify-content: flex-start;
-      font-size: clamp(0.92rem, 1.32vw, 1.72rem);
+      justify-content: flex-end;
+      font-size: clamp(0.45rem, 0.98vw, 0.88rem);
       font-weight: 700;
-      line-height: 1.05;
+      line-height: 1;
       font-family: "Orbitron", "Exo 2", sans-serif;
       text-shadow: 0 0 8px rgba(255, 236, 248, 0.3);
-      text-align: left;
+      text-align: right;
       color: var(--bm-text);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-    }
-
-    .value {
-      font-size: clamp(1rem, 1.55vw, 1.7rem);
-      font-weight: 700;
-      line-height: 1.1;
-      font-family: "Orbitron", "Exo 2", sans-serif;
-      text-shadow: 0 0 8px rgba(255, 236, 248, 0.3);
-      text-align: right;
+      padding-right: 2%;
     }
 
     .accent-cyan {
@@ -651,35 +535,6 @@ export class BitcoinMinerCard extends LitElement {
       animation: tempAlert 0.9s ease-in-out infinite;
     }
 
-    .warning-chip {
-      margin-top: auto;
-      text-align: center;
-      font-family: "Orbitron", "Exo 2", sans-serif;
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: #ffd8b2;
-      border: 1px solid rgba(255, 163, 94, 0.7);
-      border-radius: 999px;
-      padding: 6px 8px;
-      background: linear-gradient(90deg, rgba(255, 78, 49, 0.35), rgba(255, 131, 39, 0.26));
-      box-shadow: 0 0 12px rgba(255, 102, 45, 0.5);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    @keyframes alarmPulse {
-      0%,
-      100% {
-        opacity: 0.84;
-        transform: scale(0.98);
-      }
-
-      50% {
-        opacity: 1;
-        transform: scale(1.02);
-      }
-    }
-
     @keyframes tempAlert {
       0%,
       100% {
@@ -692,64 +547,50 @@ export class BitcoinMinerCard extends LitElement {
     }
 
     @media (max-width: 1100px) {
-      .content-grid {
-        grid-template-columns: 1fr;
+      .legend-row {
+        top: 18.8%;
+        width: 34%;
       }
 
-      .stat-stack {
-        margin-top: auto;
-      }
-
-      .value {
-        font-size: 1.4rem;
-      }
-
-      .current-row {
-        font-size: 1.5rem;
-      }
-
-      .stat-values {
-        padding-left: 51.8%;
+      .device-values {
+        left: 70.9%;
+        width: 20.8%;
       }
     }
 
     @media (max-width: 540px) {
-      .scene {
-        padding: 12px;
+      .legend-row {
+        font-size: clamp(0.4rem, 1.35vw, 0.68rem);
+        width: 36%;
       }
 
-      .stat-stack {
-        margin-top: auto;
-      }
-
-      .overheat-image {
-        top: 4px;
-        max-height: 66px;
-      }
-
-      .value {
-        font-size: 1rem;
+      .chart-area {
+        left: 10.4%;
+        width: 48.6%;
       }
 
       .axis-row {
-        font-size: 0.9rem;
+        font-size: clamp(0.4rem, 1.25vw, 0.6rem);
       }
 
       .current-row {
-        font-size: 1rem;
-      }
-
-      .chart {
-        height: 200px;
+        font-size: clamp(0.46rem, 1.44vw, 0.75rem);
       }
 
       .left-scale,
       .right-scale {
-        font-size: 0.72rem;
+        font-size: clamp(0.36rem, 1.05vw, 0.56rem);
       }
 
-      .stat-values {
-        padding-left: 52.8%;
+      .device-values {
+        left: 70.6%;
+        top: 45.6%;
+        width: 21.4%;
+        height: 24%;
+      }
+
+      .stat-value {
+        font-size: clamp(0.38rem, 1.22vw, 0.6rem);
       }
     }
   `;

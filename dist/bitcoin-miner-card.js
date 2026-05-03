@@ -108,45 +108,46 @@ const ht={attribute:!0,type:String,converter:g,reflect:!1,hasChanged:v},lt=(t=ht
 
     .device-values {
       position: absolute;
-      left: 70.5%;
-      top: 44.9%;
-      width: 20.6%;
-      height: 24.6%;
+      left: 70.2%;
+      top: 45.1%;
+      width: 20.1%;
+      height: 22.7%;
       display: grid;
       grid-template-rows: repeat(4, 1fr);
-      row-gap: 2%;
+      row-gap: 1%;
     }
 
     .stat-value {
       display: flex;
       align-items: center;
-      justify-content: flex-end;
-      font-size: clamp(0.42rem, 0.9vw, 0.78rem);
+      justify-content: flex-start;
+      text-align: left;
+      font-size: clamp(0.4rem, 0.86vw, 0.74rem);
       font-weight: 700;
-      line-height: 1;
+      line-height: 1.05;
       font-family: "Orbitron", "Exo 2", sans-serif;
       text-shadow: 0 0 8px rgba(255, 236, 248, 0.3);
       color: var(--bm-text);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      padding-right: 3%;
+      padding-left: 1.6%;
     }
 
     .stat-value:nth-child(1),
     .stat-value:nth-child(2) {
-      font-size: clamp(0.4rem, 0.84vw, 0.74rem);
+      font-size: clamp(0.38rem, 0.8vw, 0.7rem);
     }
 
     .stat-value:nth-child(3),
     .stat-value:nth-child(4) {
-      font-size: clamp(0.44rem, 0.95vw, 0.82rem);
+      font-size: clamp(0.41rem, 0.88vw, 0.76rem);
     }
 
-    .stat-value:nth-child(1) { transform: translateY(-1%); }
+    .stat-value:nth-child(1) { transform: translateY(-0.4%); }
     .stat-value:nth-child(2) { transform: translateY(0); }
-    .stat-value:nth-child(3) { transform: translateY(1%); }
-    .stat-value:nth-child(4) { transform: translateY(1%); }
+    .stat-value:nth-child(3) { transform: translateY(0.4%); }
+    .stat-value:nth-child(4) { transform: translateY(0.8%); }
 
     .accent-cyan { color: var(--bm-edge-alt); }
     .accent-danger {
@@ -161,17 +162,17 @@ const ht={attribute:!0,type:String,converter:g,reflect:!1,hasChanged:v},lt=(t=ht
     }
 
     @media (max-width: 1100px) {
-      .device-values { left: 70.3%; width: 21%; }
+      .device-values { left: 70.1%; width: 20.4%; }
     }
 
     @media (max-width: 540px) {
       .current-row { top: 82.3%; font-size: clamp(0.42rem, 1.2vw, 0.68rem); }
-      .device-values { left: 70.3%; top: 45%; width: 21%; height: 24.4%; }
-      .stat-value { font-size: clamp(0.36rem, 1.1vw, 0.56rem); }
+      .device-values { left: 70%; top: 45.2%; width: 20.6%; height: 22.9%; }
+      .stat-value { font-size: clamp(0.35rem, 1.05vw, 0.54rem); }
       .stat-value:nth-child(1),
-      .stat-value:nth-child(2) { font-size: clamp(0.34rem, 1.02vw, 0.52rem); }
+      .stat-value:nth-child(2) { font-size: clamp(0.33rem, 0.98vw, 0.5rem); }
       .stat-value:nth-child(3),
-      .stat-value:nth-child(4) { font-size: clamp(0.36rem, 1.1vw, 0.56rem); }
+      .stat-value:nth-child(4) { font-size: clamp(0.35rem, 1.05vw, 0.54rem); }
     }
   `,t([ct({attribute:!1})],dt.prototype,"hass",void 0),t([ct({attribute:!1})],dt.prototype,"config",void 0),dt=t([(t=>(e,s)=>{void 0!==s?s.addInitializer(()=>{customElements.define(t,e)}):customElements.define(t,e)})("bitcoin-miner-card")],dt),window.customCards=window.customCards||[],window.customCards.push({type:"bitcoin-miner-card",name:"Bitcoin Miner Card",preview:!1,description:"A custom card for monitoring Bitcoin miner stats.",documentationURL:"https://developers.home-assistant.io/docs/frontend/custom-ui/custom-card/"});export{dt as BitcoinMinerCard};
 //# sourceMappingURL=bitcoin-miner-card.js.map

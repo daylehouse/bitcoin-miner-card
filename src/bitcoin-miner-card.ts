@@ -16,28 +16,21 @@ interface BitcoinMinerCardConfig {
   model_entity?: string;
   overheat_threshold?: number;
   base_image?: string;
-  background_image?: string;
-  overheat_image?: string;
-  stats_image?: string;
-  show_overheat?: boolean;
 }
 
 interface ConfigFormControl {
   name: keyof BitcoinMinerCardConfig | string;
-  required?: boolean;
   selector?: Record<string, unknown>;
   type?: string;
   schema?: ConfigFormControl[];
   flatten?: boolean;
   column_min_width?: string;
-  title?: string;
 }
 
 interface ConfigForm {
   schema: ConfigFormControl[];
   computeLabel?: (schema: ConfigFormControl) => string | undefined;
   computeHelper?: (schema: ConfigFormControl) => string | undefined;
-  assertConfig?: (config: BitcoinMinerCardConfig) => void;
 }
 
 @customElement("bitcoin-miner-card")
@@ -56,34 +49,13 @@ export class BitcoinMinerCard extends LitElement {
   public static getConfigForm(): ConfigForm {
     return {
       schema: [
-        {
-          name: "title",
-          selector: { text: {} }
-        },
-        {
-          name: "miner_name",
-          selector: { text: {} }
-        },
-        {
-          name: "miner_name_entity",
-          selector: { entity: {} }
-        },
-        {
-          name: "hashrate_entity",
-          selector: { entity: {} }
-        },
-        {
-          name: "temperature_entity",
-          selector: { entity: {} }
-        },
-        {
-          name: "power_entity",
-          selector: { entity: {} }
-        },
-        {
-          name: "model_entity",
-          selector: { entity: {} }
-        },
+        { name: "title", selector: { text: {} } },
+        { name: "miner_name", selector: { text: {} } },
+        { name: "miner_name_entity", selector: { entity: {} } },
+        { name: "hashrate_entity", selector: { entity: {} } },
+        { name: "temperature_entity", selector: { entity: {} } },
+        { name: "power_entity", selector: { entity: {} } },
+        { name: "model_entity", selector: { entity: {} } },
         {
           type: "grid",
           name: "",
@@ -102,34 +74,7 @@ export class BitcoinMinerCard extends LitElement {
                 }
               }
             },
-            {
-              name: "show_overheat",
-              selector: { boolean: {} }
-            }
-          ]
-        },
-        {
-          type: "expandable",
-          name: "",
-          title: "Asset URL Overrides",
-          flatten: true,
-          schema: [
-            {
-              name: "base_image",
-              selector: { text: {} }
-            },
-            {
-              name: "background_image",
-              selector: { text: {} }
-            },
-            {
-              name: "overheat_image",
-              selector: { text: {} }
-            },
-            {
-              name: "stats_image",
-              selector: { text: {} }
-            }
+            { name: "base_image", selector: { text: {} } }
           ]
         }
       ],
@@ -151,16 +96,8 @@ export class BitcoinMinerCard extends LitElement {
             return "Model Entity";
           case "overheat_threshold":
             return "Overheat Threshold";
-          case "show_overheat":
-            return "Show Overheat Overlay";
-          case "background_image":
-            return "Background Image URL";
           case "base_image":
             return "Base Image URL";
-          case "overheat_image":
-            return "Overheat Image URL";
-          case "stats_image":
-            return "Stats Panel Image URL";
           default:
             return undefined;
         }
@@ -168,29 +105,11 @@ export class BitcoinMinerCard extends LitElement {
       computeHelper: (schema) => {
         switch (schema.name) {
           case "miner_name_entity":
-            return "Optional sensor. Its state overrides Miner Name text when available.";
-          case "temperature_entity":
-            return "Used to trigger overheat mode when the threshold is reached.";
-          case "overheat_threshold":
-            return "Warning overlay appears when temperature is equal to or above this value.";
-          case "background_image":
-            return "Legacy option. Base image is now preferred.";
+            return "Optional sensor. Its state overrides Miner Name text.";
           case "base_image":
-            return "Optional path or URL. Leave blank to use bundled base.png.";
-          case "overheat_image":
-            return "Legacy option from previous design iteration.";
-          case "stats_image":
-            return "Legacy option from previous design iteration.";
+            return "Optional path/URL. Defaults to bundled background.png.";
           default:
             return undefined;
-        }
-      },
-      assertConfig: (config) => {
-        if (
-          config.overheat_threshold !== undefined &&
-          (!Number.isFinite(config.overheat_threshold) || config.overheat_threshold < -50)
-        ) {
-          throw new Error("overheat_threshold must be a valid number");
         }
       }
     };
@@ -201,18 +120,10 @@ export class BitcoinMinerCard extends LitElement {
       throw new Error("Invalid configuration for bitcoin-miner-card");
     }
 
-    if (
-      config.overheat_threshold !== undefined &&
-      (!Number.isFinite(config.overheat_threshold) || config.overheat_threshold < -50)
-    ) {
-      throw new Error("overheat_threshold must be a valid number");
-    }
-
     this.config = {
       title: "Crypto Miner Stats",
       miner_name: "Rig-01",
       overheat_threshold: 85,
-      show_overheat: true,
       ...config
     };
   }
@@ -243,15 +154,16 @@ export class BitcoinMinerCard extends LitElement {
     const hashrate = this.readState(this.config.hashrate_entity, "MH/s");
     const temperature = this.readState(this.config.temperature_entity, "°C");
     const power = this.readState(this.config.power_entity, "W");
-    const minerNameState = this.readState(this.config.miner_name_entity, "");
     const model = this.readState(this.config.model_entity, "");
+    const minerNameState = this.readState(this.config.miner_name_entity, "");
     const minerName =
       minerNameState.value !== "-" ? minerNameState.value : this.config.miner_name ?? "Unknown";
+
     const threshold = this.config.overheat_threshold ?? 85;
     const numericTemp = this.parseNumericState(temperature.value);
     const isOverheat = numericTemp !== null && numericTemp >= threshold;
-    const baseImage = this.resolveAssetUrl(this.config.base_image, "base.png");
-    const temperatureClass = isOverheat ? "value accent-danger" : "value accent-pink";
+    const temperatureClass = isOverheat ? "stat-value accent-danger" : "stat-value";
+    const baseImage = this.resolveAssetUrl(this.config.base_image, "background.png");
     const stageStyle = `--bm-base-image: url('${baseImage}')`;
 
     return html`
@@ -263,36 +175,15 @@ export class BitcoinMinerCard extends LitElement {
           </div>
 
           <div class="chart-area">
-            <div class="left-scale">
-              <span>900</span>
-              <span>600</span>
-              <span>300</span>
-              <span>0</span>
-            </div>
+            <div class="left-scale"><span>900</span><span>600</span><span>300</span><span>0</span></div>
             <svg class="chart" viewBox="0 0 600 220" preserveAspectRatio="none" role="img" aria-label="Miner trend lines">
-              <polyline
-                class="line-hashrate"
-                points="0,135 45,118 90,126 135,116 180,120 225,98 270,108 315,126 360,112 405,133 450,142 495,126 540,129 600,116"
-              ></polyline>
-              <polyline
-                class="line-temp"
-                points="0,170 45,164 90,145 135,152 180,139 225,129 270,142 315,123 360,109 405,114 450,87 495,102 540,95 600,81"
-              ></polyline>
+              <polyline class="line-hashrate" points="0,135 45,118 90,126 135,116 180,120 225,98 270,108 315,126 360,112 405,133 450,142 495,126 540,129 600,116"></polyline>
+              <polyline class="line-temp" points="0,170 45,164 90,145 135,152 180,139 225,129 270,142 315,123 360,109 405,114 450,87 495,102 540,95 600,81"></polyline>
             </svg>
-            <div class="right-scale">
-              <span>90</span>
-              <span>70</span>
-              <span>50</span>
-              <span>30</span>
-            </div>
+            <div class="right-scale"><span>90</span><span>70</span><span>50</span><span>30</span></div>
           </div>
 
-          <div class="axis-row">
-            <span>12:00</span>
-            <span>12:30</span>
-            <span>1:00</span>
-            <span>1:30</span>
-          </div>
+          <div class="axis-row"><span>12:00</span><span>12:30</span><span>1:00</span><span>1:30</span></div>
 
           <div class="current-row">
             <span class="current cyan">${hashrate.value} ${hashrate.unit}</span>
@@ -302,7 +193,7 @@ export class BitcoinMinerCard extends LitElement {
           <div class="device-values">
             <span class="stat-value">${minerName}</span>
             <span class="stat-value">${model.value || "Unavailable"}</span>
-            <span class=${`stat-value ${temperatureClass}`}>${temperature.value}${temperature.unit}</span>
+            <span class=${temperatureClass}>${temperature.value}${temperature.unit}</span>
             <span class="stat-value accent-cyan">${power.value} ${power.unit}</span>
           </div>
         </section>
@@ -315,7 +206,6 @@ export class BitcoinMinerCard extends LitElement {
     if (!match) {
       return null;
     }
-
     const numeric = Number(match[0]);
     return Number.isFinite(numeric) ? numeric : null;
   }
@@ -324,7 +214,6 @@ export class BitcoinMinerCard extends LitElement {
     if (configValue && configValue.trim().length > 0) {
       return configValue;
     }
-
     return new URL(`./${fallbackFile}`, import.meta.url).toString();
   }
 
@@ -332,19 +221,12 @@ export class BitcoinMinerCard extends LitElement {
     if (!this.hass || !entityId) {
       return { value: "-", unit: defaultUnit };
     }
-
     const entity = this.hass.states[entityId];
     if (!entity) {
       return { value: "-", unit: defaultUnit };
     }
-
-    const unit =
-      (entity.attributes?.unit_of_measurement as string | undefined) ?? defaultUnit;
-
-    return {
-      value: entity.state,
-      unit
-    };
+    const unit = (entity.attributes?.unit_of_measurement as string | undefined) ?? defaultUnit;
+    return { value: entity.state, unit };
   }
 
   static styles = css`
@@ -363,7 +245,6 @@ export class BitcoinMinerCard extends LitElement {
       background: #090615;
       color: var(--bm-text);
       border: 1px solid rgba(255, 103, 205, 0.4);
-      box-shadow: 0 0 20px rgba(255, 58, 171, 0.25);
     }
 
     .stage {
@@ -379,10 +260,10 @@ export class BitcoinMinerCard extends LitElement {
     .legend-row {
       position: absolute;
       left: 12.8%;
-      top: 18.4%;
+      top: 18.5%;
       display: inline-flex;
-      gap: 1.8%;
-      width: 30%;
+      gap: 5%;
+      width: 33%;
       font-size: clamp(0.45rem, 1.05vw, 0.9rem);
       font-weight: 700;
       font-family: "Exo 2", sans-serif;
@@ -399,6 +280,9 @@ export class BitcoinMinerCard extends LitElement {
       box-shadow: 0 0 8px currentColor;
     }
 
+    .legend-item.cyan::before { background: var(--bm-edge-alt); }
+    .legend-item.pink::before { background: var(--bm-edge); }
+
     .chart-area {
       position: absolute;
       left: 10.9%;
@@ -408,7 +292,6 @@ export class BitcoinMinerCard extends LitElement {
       display: grid;
       grid-template-columns: 11% 78% 11%;
       align-items: stretch;
-      gap: 0;
     }
 
     .left-scale,
@@ -421,15 +304,6 @@ export class BitcoinMinerCard extends LitElement {
       font-weight: 700;
       color: rgba(255, 207, 245, 0.85);
       padding: 4% 0;
-      text-shadow: 0 0 6px rgba(255, 120, 220, 0.35);
-    }
-
-    .legend-item.cyan::before {
-      background: var(--bm-edge-alt);
-    }
-
-    .legend-item.pink::before {
-      background: var(--bm-edge);
     }
 
     .chart {
@@ -447,15 +321,8 @@ export class BitcoinMinerCard extends LitElement {
       filter: drop-shadow(0 0 3px currentColor);
     }
 
-    .line-hashrate {
-      stroke: var(--bm-edge-alt);
-      color: var(--bm-edge-alt);
-    }
-
-    .line-temp {
-      stroke: var(--bm-edge);
-      color: var(--bm-edge);
-    }
+    .line-hashrate { stroke: var(--bm-edge-alt); color: var(--bm-edge-alt); }
+    .line-temp { stroke: var(--bm-edge); color: var(--bm-edge); }
 
     .axis-row {
       position: absolute;
@@ -493,10 +360,10 @@ export class BitcoinMinerCard extends LitElement {
 
     .device-values {
       position: absolute;
-      left: 70.9%;
-      top: 44.9%;
-      width: 20.8%;
-      height: 25.2%;
+      left: 70.7%;
+      top: 45.1%;
+      width: 21%;
+      height: 25.1%;
       display: grid;
       grid-template-rows: repeat(4, 1fr);
     }
@@ -510,7 +377,6 @@ export class BitcoinMinerCard extends LitElement {
       line-height: 1;
       font-family: "Orbitron", "Exo 2", sans-serif;
       text-shadow: 0 0 8px rgba(255, 236, 248, 0.3);
-      text-align: left;
       color: var(--bm-text);
       white-space: nowrap;
       overflow: hidden;
@@ -521,7 +387,6 @@ export class BitcoinMinerCard extends LitElement {
     .stat-value:nth-child(1),
     .stat-value:nth-child(2) {
       font-size: clamp(0.42rem, 0.9vw, 0.78rem);
-      transform: translateY(-1%);
     }
 
     .stat-value:nth-child(3),
@@ -529,32 +394,12 @@ export class BitcoinMinerCard extends LitElement {
       font-size: clamp(0.46rem, 1.05vw, 0.92rem);
     }
 
-    .stat-value:nth-child(1) {
-      transform: translateY(-2%);
-    }
+    .stat-value:nth-child(1) { transform: translateY(-2%); }
+    .stat-value:nth-child(2) { transform: translateY(-1%); }
+    .stat-value:nth-child(3) { transform: translateY(1%); }
+    .stat-value:nth-child(4) { transform: translateY(2%); }
 
-    .stat-value:nth-child(2) {
-      transform: translateY(-1%);
-    }
-
-    .stat-value:nth-child(3) {
-      transform: translateY(1%);
-    }
-
-    .stat-value:nth-child(4) {
-      transform: translateY(2%);
-    }
-
-    .accent-cyan {
-      color: var(--bm-edge-alt);
-      text-shadow: 0 0 8px rgba(79, 211, 255, 0.45);
-    }
-
-    .accent-pink {
-      color: #ff66cb;
-      text-shadow: 0 0 8px rgba(255, 102, 203, 0.45);
-    }
-
+    .accent-cyan { color: var(--bm-edge-alt); }
     .accent-danger {
       color: var(--bm-danger);
       text-shadow: 0 0 10px rgba(255, 139, 61, 0.95);
@@ -562,72 +407,27 @@ export class BitcoinMinerCard extends LitElement {
     }
 
     @keyframes tempAlert {
-      0%,
-      100% {
-        opacity: 1;
-      }
-
-      50% {
-        opacity: 0.62;
-      }
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.62; }
     }
 
     @media (max-width: 1100px) {
-      .legend-row {
-        top: 18.8%;
-        width: 34%;
-      }
-
-      .device-values {
-        left: 70.5%;
-        width: 21.3%;
-      }
+      .legend-row { top: 18.8%; width: 34%; }
+      .device-values { left: 70.3%; width: 21.7%; }
     }
 
     @media (max-width: 540px) {
-      .legend-row {
-        font-size: clamp(0.4rem, 1.35vw, 0.68rem);
-        width: 36%;
-      }
-
-      .chart-area {
-        left: 10.4%;
-        width: 48.6%;
-      }
-
-      .axis-row {
-        font-size: clamp(0.4rem, 1.25vw, 0.6rem);
-      }
-
-      .current-row {
-        font-size: clamp(0.46rem, 1.44vw, 0.75rem);
-      }
-
-      .left-scale,
-      .right-scale {
-        font-size: clamp(0.36rem, 1.05vw, 0.56rem);
-      }
-
-      .device-values {
-        left: 70.5%;
-        top: 45.3%;
-        width: 21.3%;
-        height: 24.7%;
-      }
-
-      .stat-value {
-        font-size: clamp(0.38rem, 1.22vw, 0.6rem);
-      }
-
+      .legend-row { font-size: clamp(0.4rem, 1.35vw, 0.68rem); width: 36%; }
+      .chart-area { left: 10.4%; width: 48.6%; }
+      .axis-row { font-size: clamp(0.4rem, 1.25vw, 0.6rem); }
+      .current-row { font-size: clamp(0.46rem, 1.44vw, 0.75rem); }
+      .left-scale, .right-scale { font-size: clamp(0.36rem, 1.05vw, 0.56rem); }
+      .device-values { left: 70.3%; top: 45.3%; width: 21.7%; height: 24.8%; }
+      .stat-value { font-size: clamp(0.38rem, 1.22vw, 0.6rem); }
       .stat-value:nth-child(1),
-      .stat-value:nth-child(2) {
-        font-size: clamp(0.35rem, 1.08vw, 0.54rem);
-      }
-
+      .stat-value:nth-child(2) { font-size: clamp(0.35rem, 1.08vw, 0.54rem); }
       .stat-value:nth-child(3),
-      .stat-value:nth-child(4) {
-        font-size: clamp(0.38rem, 1.22vw, 0.6rem);
-      }
+      .stat-value:nth-child(4) { font-size: clamp(0.38rem, 1.22vw, 0.6rem); }
     }
   `;
 }

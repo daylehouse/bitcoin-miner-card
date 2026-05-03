@@ -108,13 +108,13 @@ const ht={attribute:!0,type:String,converter:g,reflect:!1,hasChanged:v},lt=(t=ht
 
     .device-values {
       position: absolute;
-      left: 70.2%;
-      top: 45.1%;
+      left: 70.25%;
+      top: 45.8%;
       width: 20.1%;
-      height: 22.7%;
+      height: 23%;
       display: grid;
       grid-template-rows: repeat(4, 1fr);
-      row-gap: 1%;
+      row-gap: 1.4%;
     }
 
     .stat-value {
@@ -144,10 +144,10 @@ const ht={attribute:!0,type:String,converter:g,reflect:!1,hasChanged:v},lt=(t=ht
       font-size: clamp(0.41rem, 0.88vw, 0.76rem);
     }
 
-    .stat-value:nth-child(1) { transform: translateY(-0.4%); }
-    .stat-value:nth-child(2) { transform: translateY(0); }
-    .stat-value:nth-child(3) { transform: translateY(0.4%); }
-    .stat-value:nth-child(4) { transform: translateY(0.8%); }
+    .stat-value:nth-child(1) { transform: translateY(-0.1%); }
+    .stat-value:nth-child(2) { transform: translateY(0.4%); }
+    .stat-value:nth-child(3) { transform: translateY(1%); }
+    .stat-value:nth-child(4) { transform: translateY(1.9%); }
 
     .accent-cyan { color: var(--bm-edge-alt); }
     .accent-danger {
@@ -162,12 +162,12 @@ const ht={attribute:!0,type:String,converter:g,reflect:!1,hasChanged:v},lt=(t=ht
     }
 
     @media (max-width: 1100px) {
-      .device-values { left: 70.1%; width: 20.4%; }
+      .device-values { left: 70.15%; top: 45.7%; width: 20.4%; }
     }
 
     @media (max-width: 540px) {
       .current-row { top: 82.3%; font-size: clamp(0.42rem, 1.2vw, 0.68rem); }
-      .device-values { left: 70%; top: 45.2%; width: 20.6%; height: 22.9%; }
+      .device-values { left: 70.05%; top: 45.7%; width: 20.6%; height: 23.1%; }
       .stat-value { font-size: clamp(0.35rem, 1.05vw, 0.54rem); }
       .stat-value:nth-child(1),
       .stat-value:nth-child(2) { font-size: clamp(0.33rem, 0.98vw, 0.5rem); }

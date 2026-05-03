@@ -311,12 +311,9 @@ export class BitcoinMinerCard extends LitElement {
             </section>
 
             <aside class="miner-panel">
-              <div class="sun-zone">
-                <div class="sun-core"></div>
-                ${isOverheat
-                  ? html`<img class="overheat-image" src=${overheatImage} alt="Overheat warning" />`
-                  : nothing}
-              </div>
+              ${isOverheat
+                ? html`<img class="overheat-image" src=${overheatImage} alt="Overheat warning" />`
+                : nothing}
 
               <div class="stat-stack" style=${statsStyle}>
                 <div class="stats-art" role="img" aria-label="Miner stats template"></div>
@@ -398,8 +395,8 @@ export class BitcoinMinerCard extends LitElement {
 
     .scene {
       position: relative;
-      padding: 26px 26px 28px;
-      min-height: 430px;
+      padding: 22px 22px 24px;
+      min-height: 360px;
       background-image:
         linear-gradient(160deg, rgba(4, 0, 17, 0.53), rgba(8, 1, 22, 0.62)),
         var(--bm-bg-image);
@@ -425,9 +422,9 @@ export class BitcoinMinerCard extends LitElement {
 
     h2 {
       margin: 0;
-      font-size: clamp(1.65rem, 3.8vw, 3rem);
+      font-size: clamp(1.25rem, 2.9vw, 2.2rem);
       font-weight: 800;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.07em;
       font-family: "Orbitron", "Exo 2", sans-serif;
       text-transform: uppercase;
       color: #ffc8f0;
@@ -436,27 +433,27 @@ export class BitcoinMinerCard extends LitElement {
 
     .content-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1.62fr) minmax(290px, 0.9fr);
-      gap: 18px;
+      grid-template-columns: minmax(0, 1.34fr) minmax(0, 0.96fr);
+      gap: 14px;
       align-items: stretch;
     }
 
     .chart-panel {
       border: 1px solid rgba(255, 124, 214, 0.44);
-      border-radius: 22px;
+      border-radius: 18px;
       background: var(--bm-panel);
-      padding: 18px 16px 16px;
+      padding: 14px 12px 12px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
       backdrop-filter: blur(1px);
       box-shadow: inset 0 0 18px rgba(255, 74, 181, 0.13);
     }
 
     .legend-row {
       display: flex;
-      gap: 22px;
-      font-size: 1.04rem;
+      gap: 16px;
+      font-size: clamp(0.84rem, 1.15vw, 1rem);
       font-weight: 700;
       padding-left: 4px;
       font-family: "Exo 2", sans-serif;
@@ -465,8 +462,8 @@ export class BitcoinMinerCard extends LitElement {
     .legend-item::before {
       content: "";
       display: inline-block;
-      width: 34px;
-      height: 5px;
+      width: 24px;
+      height: 4px;
       border-radius: 999px;
       margin-right: 8px;
       vertical-align: middle;
@@ -486,7 +483,7 @@ export class BitcoinMinerCard extends LitElement {
       flex-direction: column;
       justify-content: space-between;
       font-family: "Orbitron", "Exo 2", sans-serif;
-      font-size: 0.9rem;
+      font-size: clamp(0.72rem, 1vw, 0.86rem);
       font-weight: 700;
       color: rgba(255, 207, 245, 0.85);
       padding: 2px 0;
@@ -502,7 +499,7 @@ export class BitcoinMinerCard extends LitElement {
 
     .chart {
       width: 100%;
-      height: 264px;
+      height: clamp(180px, 24vw, 238px);
       border: 1px solid rgba(255, 95, 193, 0.44);
       border-radius: 12px;
       background: rgba(8, 6, 20, 0.65);
@@ -535,7 +532,7 @@ export class BitcoinMinerCard extends LitElement {
     .axis-row {
       display: flex;
       justify-content: space-between;
-      font-size: 1.1rem;
+      font-size: clamp(0.82rem, 1.25vw, 1rem);
       font-weight: 700;
       color: rgba(255, 204, 236, 0.92);
       font-family: "Exo 2", sans-serif;
@@ -548,7 +545,7 @@ export class BitcoinMinerCard extends LitElement {
       justify-content: space-between;
       gap: 12px;
       font-family: "Orbitron", "Exo 2", sans-serif;
-      font-size: 2rem;
+      font-size: clamp(1rem, 2vw, 1.7rem);
       font-weight: 700;
     }
 
@@ -559,55 +556,39 @@ export class BitcoinMinerCard extends LitElement {
 
     .miner-panel {
       border: 1px solid rgba(255, 124, 214, 0.44);
-      border-radius: 22px;
-      background: rgba(8, 6, 27, 0.85);
-      padding: 14px 16px 16px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(10, 6, 30, 0.28) 0%, rgba(8, 6, 27, 0.88) 34%);
+      padding: 12px 12px 12px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
       position: relative;
       overflow: hidden;
       box-shadow: inset 0 0 18px rgba(255, 74, 181, 0.11);
     }
 
-    .sun-zone {
-      position: relative;
-      height: 140px;
-      display: grid;
-      place-items: center;
-      margin-bottom: 0;
-    }
-
-    .sun-core {
-      width: 188px;
-      height: 112px;
-      border-radius: 118px 118px 0 0;
-      background: radial-gradient(circle at 50% 35%, #ffd09a 0%, #ff8044 65%, #cb3e19 100%);
-      box-shadow: 0 0 30px rgba(255, 120, 52, 0.7);
-      border: 1px solid rgba(255, 186, 112, 0.7);
-      transform: translateY(20px);
-      opacity: 0.78;
-    }
-
     .overheat-image {
       position: absolute;
-      top: 8px;
+      top: 6px;
       right: 0;
       left: 0;
       margin: 0 auto;
-      max-width: 96%;
-      max-height: 122px;
+      max-width: 86%;
+      max-height: 84px;
       object-fit: contain;
       filter: drop-shadow(0 0 12px rgba(255, 123, 60, 0.8));
       animation: alarmPulse 1.2s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 2;
     }
 
     .stat-stack {
       position: relative;
       width: 100%;
       aspect-ratio: 596 / 464;
-      border-radius: 12px;
+      border-radius: 10px;
       overflow: hidden;
+      margin-top: 54px;
     }
 
     .stats-art {
@@ -624,44 +605,25 @@ export class BitcoinMinerCard extends LitElement {
       inset: 0;
       display: grid;
       grid-template-rows: repeat(4, 1fr);
-      padding: 4.2% 5.5% 4% 52.5%;
+      padding: 4.8% 5% 3.6% 51.2%;
       pointer-events: none;
     }
 
     .stat-value {
       display: flex;
       align-items: center;
-      justify-content: center;
-      font-size: clamp(1.02rem, 1.75vw, 2.05rem);
+      justify-content: flex-start;
+      font-size: clamp(0.9rem, 1.18vw, 1.5rem);
       font-weight: 700;
       line-height: 1;
       font-family: "Orbitron", "Exo 2", sans-serif;
       text-shadow: 0 0 8px rgba(255, 236, 248, 0.3);
-      text-align: center;
+      text-align: left;
       color: var(--bm-text);
     }
 
-    .stat-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      min-height: 58px;
-      border-bottom: 1px solid rgba(255, 117, 208, 0.34);
-      padding: 0 2px;
-    }
-
-    .label {
-      font-size: 1.08rem;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      color: rgba(255, 181, 227, 0.82);
-      font-weight: 700;
-      font-family: "Exo 2", sans-serif;
-    }
-
     .value {
-      font-size: 2.05rem;
+      font-size: clamp(1rem, 1.55vw, 1.7rem);
       font-weight: 700;
       line-height: 1.1;
       font-family: "Orbitron", "Exo 2", sans-serif;
@@ -725,13 +687,13 @@ export class BitcoinMinerCard extends LitElement {
       }
     }
 
-    @media (max-width: 900px) {
+    @media (max-width: 1100px) {
       .content-grid {
         grid-template-columns: 1fr;
       }
 
-      .sun-zone {
-        height: 120px;
+      .stat-stack {
+        margin-top: 44px;
       }
 
       .value {
@@ -743,7 +705,7 @@ export class BitcoinMinerCard extends LitElement {
       }
 
       .stat-values {
-        padding-left: 53.5%;
+        padding-left: 51.8%;
       }
     }
 
@@ -752,12 +714,17 @@ export class BitcoinMinerCard extends LitElement {
         padding: 12px;
       }
 
-      .value {
-        font-size: 1rem;
+      .stat-stack {
+        margin-top: 36px;
       }
 
-      .label {
-        font-size: 0.82rem;
+      .overheat-image {
+        top: 4px;
+        max-height: 66px;
+      }
+
+      .value {
+        font-size: 1rem;
       }
 
       .axis-row {
@@ -778,7 +745,7 @@ export class BitcoinMinerCard extends LitElement {
       }
 
       .stat-values {
-        padding-left: 54.5%;
+        padding-left: 52.8%;
       }
     }
   `;

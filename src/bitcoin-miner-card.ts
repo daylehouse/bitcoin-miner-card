@@ -156,8 +156,7 @@ export class BitcoinMinerCard extends LitElement {
     const power = this.readState(this.config.power_entity, "W");
     const model = this.readState(this.config.model_entity, "");
     const minerNameState = this.readState(this.config.miner_name_entity, "");
-    const minerName =
-      minerNameState.value !== "-" ? minerNameState.value : this.config.miner_name ?? "Unknown";
+    const minerName = minerNameState.value;
 
     const threshold = this.config.overheat_threshold ?? 85;
     const numericTemp = this.parseNumericState(temperature.value);
@@ -169,36 +168,29 @@ export class BitcoinMinerCard extends LitElement {
     return html`
       <ha-card>
         <section class="stage" style=${stageStyle}>
-          <div class="legend-row">
-            <span class="legend-item cyan">Hashrate</span>
-            <span class="legend-item pink">Temperature</span>
-          </div>
-
-          <div class="chart-area">
-            <div class="left-scale"><span>900</span><span>600</span><span>300</span><span>0</span></div>
-            <svg class="chart" viewBox="0 0 600 220" preserveAspectRatio="none" role="img" aria-label="Miner trend lines">
-              <polyline class="line-hashrate" points="0,135 45,118 90,126 135,116 180,120 225,98 270,108 315,126 360,112 405,133 450,142 495,126 540,129 600,116"></polyline>
-              <polyline class="line-temp" points="0,170 45,164 90,145 135,152 180,139 225,129 270,142 315,123 360,109 405,114 450,87 495,102 540,95 600,81"></polyline>
-            </svg>
-            <div class="right-scale"><span>90</span><span>70</span><span>50</span><span>30</span></div>
-          </div>
-
-          <div class="axis-row"><span>12:00</span><span>12:30</span><span>1:00</span><span>1:30</span></div>
-
           <div class="current-row">
-            <span class="current cyan">${hashrate.value} ${hashrate.unit}</span>
-            <span class="current pink">${temperature.value} ${temperature.unit}</span>
+            <span class="current cyan">${this.formatState(hashrate)}</span>
+            <span class="current pink">${this.formatState(temperature)}</span>
           </div>
 
           <div class="device-values">
             <span class="stat-value">${minerName}</span>
-            <span class="stat-value">${model.value || "Unavailable"}</span>
-            <span class=${temperatureClass}>${temperature.value}${temperature.unit}</span>
-            <span class="stat-value accent-cyan">${power.value} ${power.unit}</span>
+            <span class="stat-value">${model.value}</span>
+            <span class=${temperatureClass}>${this.formatState(temperature)}</span>
+            <span class="stat-value accent-cyan">${this.formatState(power)}</span>
           </div>
         </section>
       </ha-card>
     `;
+  }
+
+  private formatState(state: { value: string; unit: string }): string {
+    const value = state.value.trim();
+    if (!value) {
+      return "";
+    }
+    const unit = state.unit.trim();
+    return unit ? `${value} ${unit}` : value;
   }
 
   private parseNumericState(state: string): number | null {
@@ -219,11 +211,11 @@ export class BitcoinMinerCard extends LitElement {
 
   private readState(entityId?: string, defaultUnit = ""): { value: string; unit: string } {
     if (!this.hass || !entityId) {
-      return { value: "-", unit: defaultUnit };
+      return { value: "", unit: "" };
     }
     const entity = this.hass.states[entityId];
     if (!entity) {
-      return { value: "-", unit: defaultUnit };
+      return { value: "", unit: "" };
     }
     const unit = (entity.attributes?.unit_of_measurement as string | undefined) ?? defaultUnit;
     return { value: entity.state, unit };
@@ -255,87 +247,6 @@ export class BitcoinMinerCard extends LitElement {
       background-size: cover;
       background-position: center;
       overflow: hidden;
-    }
-
-    .legend-row {
-      position: absolute;
-      left: 12.8%;
-      top: 18.5%;
-      display: inline-flex;
-      gap: 5%;
-      width: 33%;
-      font-size: clamp(0.45rem, 1.05vw, 0.9rem);
-      font-weight: 700;
-      font-family: "Exo 2", sans-serif;
-    }
-
-    .legend-item::before {
-      content: "";
-      display: inline-block;
-      width: 1.8em;
-      height: 0.28em;
-      border-radius: 999px;
-      margin-right: 0.48em;
-      vertical-align: middle;
-      box-shadow: 0 0 8px currentColor;
-    }
-
-    .legend-item.cyan::before { background: var(--bm-edge-alt); }
-    .legend-item.pink::before { background: var(--bm-edge); }
-
-    .chart-area {
-      position: absolute;
-      left: 10.9%;
-      top: 29.4%;
-      width: 47.6%;
-      height: 40.8%;
-      display: grid;
-      grid-template-columns: 11% 78% 11%;
-      align-items: stretch;
-    }
-
-    .left-scale,
-    .right-scale {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      font-family: "Orbitron", "Exo 2", sans-serif;
-      font-size: clamp(0.45rem, 0.86vw, 0.73rem);
-      font-weight: 700;
-      color: rgba(255, 207, 245, 0.85);
-      padding: 4% 0;
-    }
-
-    .chart {
-      width: 100%;
-      height: 100%;
-      background: transparent;
-    }
-
-    .line-hashrate,
-    .line-temp {
-      fill: none;
-      stroke-width: 4;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      filter: drop-shadow(0 0 3px currentColor);
-    }
-
-    .line-hashrate { stroke: var(--bm-edge-alt); color: var(--bm-edge-alt); }
-    .line-temp { stroke: var(--bm-edge); color: var(--bm-edge); }
-
-    .axis-row {
-      position: absolute;
-      left: 12%;
-      top: 70.6%;
-      width: 45%;
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      font-size: clamp(0.5rem, 0.98vw, 0.86rem);
-      font-weight: 700;
-      color: rgba(255, 204, 236, 0.92);
-      font-family: "Exo 2", sans-serif;
-      text-align: center;
     }
 
     .current-row {
@@ -412,16 +323,11 @@ export class BitcoinMinerCard extends LitElement {
     }
 
     @media (max-width: 1100px) {
-      .legend-row { top: 18.8%; width: 34%; }
       .device-values { left: 70.3%; width: 21.7%; }
     }
 
     @media (max-width: 540px) {
-      .legend-row { font-size: clamp(0.4rem, 1.35vw, 0.68rem); width: 36%; }
-      .chart-area { left: 10.4%; width: 48.6%; }
-      .axis-row { font-size: clamp(0.4rem, 1.25vw, 0.6rem); }
       .current-row { font-size: clamp(0.46rem, 1.44vw, 0.75rem); }
-      .left-scale, .right-scale { font-size: clamp(0.36rem, 1.05vw, 0.56rem); }
       .device-values { left: 70.3%; top: 45.3%; width: 21.7%; height: 24.8%; }
       .stat-value { font-size: clamp(0.38rem, 1.22vw, 0.6rem); }
       .stat-value:nth-child(1),

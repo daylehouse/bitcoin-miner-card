@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "build": "rollup -c && npm run copy-assets",
-    "copy-assets": "cp -f background.png overheat.png dist/",
+    "copy-assets": "cp -f background.png overheat.png stats.png dist/",
     "watch": "rollup -c -w",
     "lint": "tsc --noEmit"
   },

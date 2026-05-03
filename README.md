@@ -41,6 +41,7 @@ A custom Lovelace card for Home Assistant focused on monitoring Bitcoin miner te
 type: custom:bitcoin-miner-card
 title: Crypto Miner Stats
 miner_name: Rig-01
+miner_name_entity: sensor.rig_01_name
 hashrate_entity: sensor.rig_01_hashrate
 temperature_entity: sensor.rig_01_temperature
 power_entity: sensor.rig_01_power
@@ -50,6 +51,7 @@ show_overheat: true
 # Optional override paths (defaults point to bundled assets next to the card JS)
 # background_image: /local/community/bitcoin-miner-card/background.png
 # overheat_image: /local/community/bitcoin-miner-card/overheat.png
+# stats_image: /local/community/bitcoin-miner-card/stats.png
 ```
 
 ## Development
@@ -71,5 +73,6 @@ The build now copies these assets into dist for deployment alongside the card bu
 
 - background.png
 - overheat.png
+- stats.png
 
 Overheat mode is activated when temperature_entity is greater than or equal to overheat_threshold.

@@ -433,7 +433,7 @@ export class BitcoinMinerCard extends LitElement {
 
     .content-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1.34fr) minmax(0, 0.96fr);
+      grid-template-columns: minmax(0, 1.46fr) minmax(0, 0.9fr);
       gap: 14px;
       align-items: stretch;
     }
@@ -569,12 +569,12 @@ export class BitcoinMinerCard extends LitElement {
 
     .overheat-image {
       position: absolute;
-      top: 6px;
+      top: 2px;
       right: 0;
       left: 0;
       margin: 0 auto;
-      max-width: 86%;
-      max-height: 84px;
+      max-width: 88%;
+      max-height: 96px;
       object-fit: contain;
       filter: drop-shadow(0 0 12px rgba(255, 123, 60, 0.8));
       animation: alarmPulse 1.2s ease-in-out infinite;
@@ -584,11 +584,12 @@ export class BitcoinMinerCard extends LitElement {
 
     .stat-stack {
       position: relative;
-      width: 100%;
+      width: 98%;
       aspect-ratio: 596 / 464;
       border-radius: 10px;
       overflow: hidden;
-      margin-top: 54px;
+      margin-top: auto;
+      margin-inline: auto;
     }
 
     .stats-art {
@@ -605,7 +606,7 @@ export class BitcoinMinerCard extends LitElement {
       inset: 0;
       display: grid;
       grid-template-rows: repeat(4, 1fr);
-      padding: 4.8% 5% 3.6% 51.2%;
+      padding: 5.2% 6% 4.6% 50.6%;
       pointer-events: none;
     }
 
@@ -613,13 +614,16 @@ export class BitcoinMinerCard extends LitElement {
       display: flex;
       align-items: center;
       justify-content: flex-start;
-      font-size: clamp(0.9rem, 1.18vw, 1.5rem);
+      font-size: clamp(0.92rem, 1.32vw, 1.72rem);
       font-weight: 700;
-      line-height: 1;
+      line-height: 1.05;
       font-family: "Orbitron", "Exo 2", sans-serif;
       text-shadow: 0 0 8px rgba(255, 236, 248, 0.3);
       text-align: left;
       color: var(--bm-text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .value {
@@ -693,7 +697,7 @@ export class BitcoinMinerCard extends LitElement {
       }
 
       .stat-stack {
-        margin-top: 44px;
+        margin-top: auto;
       }
 
       .value {
@@ -715,7 +719,7 @@ export class BitcoinMinerCard extends LitElement {
       }
 
       .stat-stack {
-        margin-top: 36px;
+        margin-top: auto;
       }
 
       .overheat-image {

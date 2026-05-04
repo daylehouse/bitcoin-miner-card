@@ -53,8 +53,7 @@ export class BitcoinMinerCard extends LitElement {
         { name: "hashrate_entity", selector: { entity: {} } },
         { name: "temperature_entity", selector: { entity: {} } },
         { name: "power_entity", selector: { entity: {} } },
-        { name: "model_entity", selector: { entity: {} } },
-        { name: "base_image", selector: { text: {} } }
+        { name: "model_entity", selector: { entity: {} } }
       ],
       computeLabel: (schema) => {
         switch (schema.name) {
@@ -70,8 +69,6 @@ export class BitcoinMinerCard extends LitElement {
             return "Power Entity";
           case "model_entity":
             return "Model Entity";
-          case "base_image":
-            return "Base Image URL";
           default:
             return undefined;
         }
@@ -82,8 +79,6 @@ export class BitcoinMinerCard extends LitElement {
             return "Sensor used for the title line.";
           case "miner_name_entity":
             return "Sensor used for the IP address line.";
-          case "base_image":
-            return "Optional path/URL. Defaults to bundled background-v2.png.";
           default:
             return undefined;
         }
@@ -146,8 +141,7 @@ export class BitcoinMinerCard extends LitElement {
         <section class="stage" style=${stageStyle}>
           <div class="title-value">${title}</div>
           <div class="current-row">
-            <span class="current cyan">${this.formatState(hashrate)}</span>
-            <span class="current pink">${this.formatState(temperature)}</span>
+            <span class="current current-only">${this.formatState(hashrate)}</span>
           </div>
 
           <div class="device-values">
@@ -262,9 +256,9 @@ export class BitcoinMinerCard extends LitElement {
 
     .current-row {
       position: absolute;
-      left: 10.65%;
+      left: 11%;
       top: 67.65%;
-      width: 45.10%;
+      width: 40%;
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
       gap: 7%;
@@ -292,6 +286,15 @@ export class BitcoinMinerCard extends LitElement {
       text-align: right;
     }
 
+    .current.current-only {
+      grid-column: 2;
+      justify-self: end;
+      text-align: right;
+      font-size: clamp(1.17rem, 3.06vw, 2.66rem);
+      transform: translate(-0.88em, 0.12em);
+      -webkit-text-stroke: 0.7px #15ff00;
+    }
+
     .device-values {
       position: absolute;
       top: 0;
@@ -305,7 +308,7 @@ export class BitcoinMinerCard extends LitElement {
       position: absolute;
       transform: translate(0, -50%);
       text-align: left;
-      font-size: clamp(0.56rem, 1.18vw, 1.02rem);
+      font-size: clamp(0.78rem, 1.62vw, 1.4rem);
       font-weight: 700;
       line-height: 1.02;
       font-family: "Alien Encounters", sans-serif;

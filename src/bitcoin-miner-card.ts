@@ -1,5 +1,8 @@
-import { css, html, LitElement, nothing } from "lit";
+import { css, html, LitElement, nothing, unsafeCSS } from "lit";
 import { customElement, property } from "lit/decorators.js";
+
+const alienRegularUrl = new URL("./alien-encounters-regular.ttf", import.meta.url).toString();
+const alienBoldUrl = new URL("./alien-encounters-bold.ttf", import.meta.url).toString();
 
 interface HomeAssistant {
   states: Record<string, { state: string; attributes?: Record<string, unknown> }>;
@@ -183,10 +186,10 @@ export class BitcoinMinerCard extends LitElement {
           </div>
 
           <div class="device-values">
-            <span class="stat-value value-fire">${minerName}</span>
-            <span class="stat-value value-gamma">${model.value}</span>
-            <span class=${`${temperatureClass} value-temp`}>${this.formatState(temperature)}</span>
-            <span class="stat-value accent-cyan value-power">${this.formatState(power)}</span>
+            <span class="stat-value value-fire"><span class="label label-cyan">Miner</span><span class="colon">:</span><span class="val val-pink">${minerName}</span></span>
+            <span class="stat-value value-gamma"><span class="label label-lavender">Model</span><span class="colon">:</span><span class="val val-pink">${model.value}</span></span>
+            <span class="stat-value value-temp"><span class="label label-lavender">Temp</span><span class="colon">:</span><span class="val ${isOverheat ? 'val-danger' : 'val-amber'}">${this.formatState(temperature)}</span></span>
+            <span class="stat-value value-power"><span class="label label-cyan">Power</span><span class="colon">:</span><span class="val val-cyan">${this.formatState(power)}</span></span>
           </div>
         </section>
       </ha-card>
@@ -231,6 +234,22 @@ export class BitcoinMinerCard extends LitElement {
   }
 
   static styles = css`
+    @font-face {
+      font-family: "Alien Encounters";
+      src: url(${unsafeCSS(alienRegularUrl)}) format("truetype");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "Alien Encounters";
+      src: url(${unsafeCSS(alienBoldUrl)}) format("truetype");
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+
     :host {
       --bm-edge: #ff43ba;
       --bm-edge-alt: #42d3ff;
@@ -261,19 +280,28 @@ export class BitcoinMinerCard extends LitElement {
     .title-value {
       position: absolute;
       left: 12.7%;
-      top: 17.0%;
+      top: 16.0%;
       width: 47%;
       color: #ff77de;
-      font-family: "Orbitron", "Exo 2", sans-serif;
-      font-size: clamp(0.74rem, 1.95vw, 1.66rem);
-      font-weight: 800;
-      letter-spacing: 0.055em;
+      background: linear-gradient(
+        90deg,
+        #ff4fd2 0%,
+        #ff79df 45%,
+        #ffb7f2 100%
+      );
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-family: "Alien Encounters", sans-serif;
+      font-size: clamp(0.8rem, 2.02vw, 1.72rem);
+      font-weight: 700;
+      letter-spacing: 0.11em;
       line-height: 1;
       text-transform: uppercase;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      text-shadow: 0 0 8px rgba(255, 120, 224, 0.55);
+      text-shadow: 0 0 14px rgba(255, 80, 210, 0.82), 0 0 4px rgba(255, 80, 210, 0.95);
     }
 
     .current-row {
@@ -285,7 +313,7 @@ export class BitcoinMinerCard extends LitElement {
       grid-template-columns: minmax(0, 1fr) auto;
       gap: 7%;
       align-items: end;
-      font-family: "Orbitron", "Exo 2", sans-serif;
+      font-family: "Alien Encounters", sans-serif;
       font-size: clamp(0.52rem, 1.36vw, 1.18rem);
       font-weight: 700;
       letter-spacing: 0.01em;
@@ -320,11 +348,11 @@ export class BitcoinMinerCard extends LitElement {
       position: absolute;
       transform: translate(0, -50%);
       text-align: left;
-      font-size: clamp(0.4rem, 0.86vw, 0.74rem);
+      font-size: clamp(0.56rem, 1.18vw, 1.02rem);
       font-weight: 700;
-      line-height: 1.05;
-      font-family: "Orbitron", "Exo 2", sans-serif;
-      text-shadow: 0 0 8px rgba(255, 236, 248, 0.3);
+      line-height: 1.02;
+      font-family: "Alien Encounters", sans-serif;
+      text-shadow: 0 0 6px rgba(255, 236, 248, 0.25);
       color: var(--bm-text);
       white-space: nowrap;
       overflow: hidden;
@@ -332,15 +360,50 @@ export class BitcoinMinerCard extends LitElement {
       max-width: 92%;
     }
 
-    .stat-value:nth-child(1),
-    .stat-value:nth-child(2) {
-      font-size: clamp(0.38rem, 0.8vw, 0.7rem);
+    .stat-value .label {
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: none;
     }
 
-    .stat-value:nth-child(3),
-    .stat-value:nth-child(4) {
-      font-size: clamp(0.41rem, 0.88vw, 0.76rem);
+    .label-cyan { color: rgba(194, 242, 255, 0.98); }
+    .label-lavender { color: rgba(213, 185, 255, 0.98); }
+
+    .stat-value .colon {
+      display: inline-block;
+      margin-left: 0.06em;
+      margin-right: 0.52em;
+      font-weight: 700;
     }
+
+    .value-fire .label,
+    .value-fire .colon,
+    .value-power .label,
+    .value-power .colon {
+      color: rgba(194, 242, 255, 0.98);
+      text-shadow: 0 0 8px rgba(120, 230, 255, 0.45);
+    }
+
+    .value-gamma .label,
+    .value-gamma .colon {
+      color: rgba(213, 185, 255, 0.98);
+      text-shadow: 0 0 8px rgba(213, 185, 255, 0.42);
+    }
+
+    .value-temp .label,
+    .value-temp .colon {
+      color: rgba(213, 185, 255, 0.98);
+      text-shadow: 0 0 8px rgba(213, 185, 255, 0.42);
+    }
+
+    .val {
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .val-cyan   { color: #9ffbff; text-shadow: 0 0 8px rgba(138, 246, 255, 0.72); }
+    .val-pink   { color: #ff86da; text-shadow: 0 0 9px rgba(255, 134, 218, 0.75); }
+    .val-amber  { color: #ffd86f; text-shadow: 0 0 10px rgba(255, 173, 76, 0.78); }
+    .val-danger { color: var(--bm-danger); text-shadow: 0 0 10px rgba(255, 139, 61, 0.95); animation: tempAlert 0.9s ease-in-out infinite; }
 
     .device-values > .value-fire { top: 54.00%; left: 70.00%; width: 16.00%; height: 6.20%; }
     .device-values > .value-gamma { top: 61.00%; left: 70.00%; width: 16.00%; height: 6.20%; }

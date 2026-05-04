@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "build": "rollup -c && npm run copy-assets",
-    "copy-assets": "cp -f background.png dist/background-v2.png",
+    "copy-assets": "cp -f background.png dist/background-v2.png && cp -f \"Alien-Encounters-Regular.ttf\" dist/alien-encounters-regular.ttf && cp -f \"Alien-Encounters-Bold.ttf\" dist/alien-encounters-bold.ttf",
     "preview": "npm run build && npx --yes serve -l 4173 .",
     "watch": "rollup -c -w",
     "lint": "tsc --noEmit"

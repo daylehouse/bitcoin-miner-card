@@ -8,6 +8,7 @@ interface HomeAssistant {
 interface BitcoinMinerCardConfig {
   type?: string;
   title?: string;
+  title_entity?: string;
   miner_name?: string;
   miner_name_entity?: string;
   hashrate_entity?: string;
@@ -50,6 +51,7 @@ export class BitcoinMinerCard extends LitElement {
     return {
       schema: [
         { name: "title", selector: { text: {} } },
+        { name: "title_entity", selector: { entity: {} } },
         { name: "miner_name", selector: { text: {} } },
         { name: "miner_name_entity", selector: { entity: {} } },
         { name: "hashrate_entity", selector: { entity: {} } },
@@ -82,6 +84,8 @@ export class BitcoinMinerCard extends LitElement {
         switch (schema.name) {
           case "title":
             return "Card Title";
+          case "title_entity":
+            return "Title Entity";
           case "miner_name":
             return "Miner Name";
           case "miner_name_entity":
@@ -104,6 +108,8 @@ export class BitcoinMinerCard extends LitElement {
       },
       computeHelper: (schema) => {
         switch (schema.name) {
+          case "title_entity":
+            return "Optional sensor. Its state overrides Card Title text.";
           case "miner_name_entity":
             return "Optional sensor. Its state overrides Miner Name text.";
           case "base_image":
@@ -151,6 +157,8 @@ export class BitcoinMinerCard extends LitElement {
       return nothing;
     }
 
+    const titleState = this.readState(this.config.title_entity, "");
+    const title = titleState.value || this.config.title || "";
     const hashrate = this.readState(this.config.hashrate_entity, "MH/s");
     const temperature = this.readState(this.config.temperature_entity, "°C");
     const power = this.readState(this.config.power_entity, "W");
@@ -166,7 +174,7 @@ export class BitcoinMinerCard extends LitElement {
     const stageStyle = `--bm-base-image: url('${baseImage}')`;
 
     return html`
-      <ha-card .header=${this.config.title}>
+      <ha-card .header=${title}>
         <section class="stage" style=${stageStyle}>
           <div class="current-row">
             <span class="current cyan">${this.formatState(hashrate)}</span>
@@ -282,10 +290,11 @@ export class BitcoinMinerCard extends LitElement {
 
     .device-values {
       position: absolute;
-      left: 11.11%;
-      top: 14.35%;
-      width: 43.70%;
-      height: 8.00%;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
     }
 
     .stat-value {
@@ -314,10 +323,10 @@ export class BitcoinMinerCard extends LitElement {
       font-size: clamp(0.41rem, 0.88vw, 0.76rem);
     }
 
-    .device-values > .value-fire { top: 47.51%; left: 70.00%; width: 18.40%; height: 6.00%; }
-    .device-values > .value-gamma { top: 55.03%; left: 70.00%; width: 17.80%; height: 6.00%; }
-    .device-values > .value-temp { top: 62.84%; left: 70.00%; width: 17.50%; height: 6.00%; }
-    .device-values > .value-power { top: 70.35%; left: 70.00%; width: 17.60%; height: 6.00%; }
+    .device-values > .value-fire { top: 46.51%; left: 75.00%; width: 18.40%; height: 6.00%; }
+    .device-values > .value-gamma { top: 55.03%; left: 75.00%; width: 17.80%; height: 6.00%; }
+    .device-values > .value-temp { top: 62.84%; left: 75.00%; width: 17.50%; height: 6.00%; }
+    .device-values > .value-power { top: 70.35%; left: 75.00%; width: 17.60%; height: 6.00%; }
 
     .accent-cyan { color: var(--bm-edge-alt); }
     .accent-danger {

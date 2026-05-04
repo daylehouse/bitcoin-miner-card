@@ -9,7 +9,7 @@ A custom Lovelace card for Home Assistant focused on monitoring Bitcoin miner te
 - Neon-styled miner status card driven by a single background image template
 - Configurable entities for hashrate, temperature, power, and model
 - State-driven overheat overlay that appears when temperature exceeds threshold
-- Uses bundled background template asset: background-v2.png
+- Uses bundled base-layer image and Alien font assets
 - Built-in Home Assistant visual configuration form support
 - Lightweight TypeScript + Lit implementation
 - HACS-compatible repository metadata
@@ -30,7 +30,12 @@ A custom Lovelace card for Home Assistant focused on monitoring Bitcoin miner te
 ### Manual
 
 1. Build the project with `npm run build`.
-2. Copy `dist/bitcoin-miner-card.js` to `/config/www/community/bitcoin-miner-card/bitcoin-miner-card.js`.
+2. Copy the built assets from `dist/` into `/config/www/community/bitcoin-miner-card/`.
+   Required files:
+   - `bitcoin-miner-card.js`
+   - `base-layer.png`
+   - `alien-encounters-regular.ttf`
+   - `alien-encounters-bold.ttf`
 3. Add resource in Home Assistant:
    - URL: `/local/community/bitcoin-miner-card/bitcoin-miner-card.js`
    - Resource type: JavaScript Module
@@ -49,7 +54,7 @@ model_entity: sensor.rig_01_model
 overheat_threshold: 85
 show_overheat: true
 # Optional override paths (defaults point to bundled assets next to the card JS)
-# base_image: /local/community/bitcoin-miner-card/background-v2.png
+# base_image: /local/community/bitcoin-miner-card/base-layer.png
 ```
 
 ## Development
@@ -68,8 +73,10 @@ show_overheat: true
 
 ## Assets
 
-The build now copies this asset into dist for deployment alongside the card bundle:
+The build now copies these assets into `dist` for deployment alongside the card bundle:
 
-- background-v2.png
+- `base-layer.png`
+- `alien-encounters-regular.ttf`
+- `alien-encounters-bold.ttf`
 
 Overheat mode is activated when temperature_entity is greater than or equal to overheat_threshold.

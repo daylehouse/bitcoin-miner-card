@@ -1,11 +1,47 @@
 import { css, html, LitElement, nothing, unsafeCSS } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import alienRegularUrl from "../Alien-Encounters-Regular.ttf";
-import alienBoldUrl from "../Alien-Encounters-Bold.ttf";
+import alienRegularRawUrl from "../Alien-Encounters-Regular.ttf";
+import alienBoldRawUrl from "../Alien-Encounters-Bold.ttf";
+import backgroundRawUrl from "../base-layer.png";
 
-const backgroundImageUrl = new URL("./background-v2.png", import.meta.url).toString();
-const alienRegularFontUrl = new URL(alienRegularUrl, import.meta.url).toString();
-const alienBoldFontUrl = new URL(alienBoldUrl, import.meta.url).toString();
+const alienRegularFontUrl = new URL(alienRegularRawUrl.toLowerCase(), import.meta.url).toString();
+const alienBoldFontUrl = new URL(alienBoldRawUrl.toLowerCase(), import.meta.url).toString();
+const backgroundImageUrl = new URL(backgroundRawUrl, import.meta.url).toString();
+const globalFontStyleId = "bitcoin-miner-card-fonts";
+
+function ensureAlienFontsRegistered(): void {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  if (!document.getElementById(globalFontStyleId)) {
+    const style = document.createElement("style");
+    style.id = globalFontStyleId;
+    style.textContent = `
+      @font-face {
+        font-family: "Bitcoin Miner Alien Local";
+        src: url("${alienRegularFontUrl}") format("truetype");
+        font-weight: 400;
+        font-style: normal;
+        font-display: block;
+      }
+
+      @font-face {
+        font-family: "Bitcoin Miner Alien Local";
+        src: url("${alienBoldFontUrl}") format("truetype");
+        font-weight: 700;
+        font-style: normal;
+        font-display: block;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  if ("fonts" in document) {
+    void document.fonts.load('400 1em "Bitcoin Miner Alien Local"');
+    void document.fonts.load('700 1em "Bitcoin Miner Alien Local"');
+  }
+}
 
 interface HomeAssistant {
   states: Record<string, { state: string; attributes?: Record<string, unknown> }>;
@@ -42,6 +78,11 @@ export class BitcoinMinerCard extends LitElement {
   @property({ attribute: false }) public hass?: HomeAssistant;
 
   @property({ attribute: false }) public config?: BitcoinMinerCardConfig;
+
+  public connectedCallback(): void {
+    super.connectedCallback();
+    ensureAlienFontsRegistered();
+  }
 
   public static getStubConfig(): BitcoinMinerCardConfig {
     return {};
@@ -105,15 +146,17 @@ export class BitcoinMinerCard extends LitElement {
 
   public getGridOptions(): {
     rows: number;
-    columns: number;
+    columns: number | "full";
     min_rows: number;
     min_columns: number;
+    max_columns: number;
   } {
     return {
       rows: 5,
-      columns: 12,
+      columns: "full",
       min_rows: 5,
-      min_columns: 12
+      min_columns: 12,
+      max_columns: 12
     };
   }
 
@@ -140,8 +183,8 @@ export class BitcoinMinerCard extends LitElement {
       <ha-card>
         <section class="stage" style=${stageStyle}>
           <div class="title-value">${title}</div>
-          <div class="current-row">
-            <span class="current current-only">${this.formatState(hashrate)}</span>
+          <div class="hashrate-row">
+            <span class="hashrate-value">${this.formatState(hashrate)}</span>
           </div>
 
           <div class="device-values">
@@ -210,11 +253,23 @@ export class BitcoinMinerCard extends LitElement {
       --bm-danger: #ff8b3d;
       --bm-text: #ffe9fa;
       --bm-font-stack: "Bitcoin Miner Alien Local", "Bitcoin Miner Alien", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      --bm-title-left: 7%;
+      --bm-title-top: 10%;
+      --bm-title-width: 47%;
+      --bm-hashrate-left: 27%;
+      --bm-hashrate-top: 79.65%;
+      --bm-hashrate-width: 40%;
+      --bm-hashrate-value-width: 65%;
+      --bm-panel-left: 73%;
+      --bm-panel-width: 24%;
+      --bm-ip-top: 56.9%;
+      --bm-model-top: 66.85%;
+      --bm-temp-top: 77%;
+      --bm-power-top: 86.5%;
       display: block;
       font-family: var(--bm-font-stack) !important;
     }
 
-    /* Keep all card text in the shadow DOM on the card-local font stack. */
     :host *,
     ha-card,
     ha-card * {
@@ -231,31 +286,22 @@ export class BitcoinMinerCard extends LitElement {
       font-synthesis: none;
     }
 
-    .stage,
-    .title-value,
-    .current-row,
-    .current,
-    .device-values,
-    .stat-value {
-      font-family: var(--bm-font-stack);
-    }
-
     .stage {
       position: relative;
       width: 100%;
       aspect-ratio: 3 / 2;
-      background-size: cover;
+      background-size: 100% 100%;
       background-position: center;
       overflow: hidden;
     }
 
     .title-value {
       position: absolute;
-      left: 12.7%;
-      top: 16.0%;
-      width: 47%;
+      left: var(--bm-title-left);
+      top: var(--bm-title-top);
+      width: var(--bm-title-width);
       color: #ffffff;
-      font-size: clamp(0.95rem, 3.2cqw, 1.8rem);
+      font-size: clamp(1.05rem, 3.52cqw, 1.98rem);
       font-weight: 700;
       letter-spacing: 0.11em;
       line-height: 1;
@@ -266,19 +312,25 @@ export class BitcoinMinerCard extends LitElement {
       text-shadow: none;
     }
 
-    .current-row {
+    .hashrate-row {
       position: absolute;
-      left: 10.5%;
-      top: 67.65%;
-      width: 52%;
-      font-size: clamp(0.55rem, 1.8cqw, 1.1rem);
+      left: var(--bm-hashrate-left);
+      top: var(--bm-hashrate-top);
+      width: var(--bm-hashrate-width);
+      font-size: clamp(0.61rem, 1.98cqw, 1.21rem);
       font-weight: 700;
       letter-spacing: 0.01em;
       text-align: right;
     }
 
-    .current {
+    .hashrate-value {
       color: #ffffff;
+      display: block;
+      width: var(--bm-hashrate-value-width);
+      text-align: right;
+      font-size: clamp(1.27rem, 3.96cqw, 2.31rem);
+      transform: translate(0, 0.12em);
+      -webkit-text-stroke: 0.7px #15ff00;
       white-space: nowrap;
       text-shadow: none;
       overflow: hidden;
@@ -286,29 +338,22 @@ export class BitcoinMinerCard extends LitElement {
       text-transform: uppercase;
     }
 
-    .current.current-only {
-      display: block;
-      width: 100%;
-      text-align: right;
-      font-size: clamp(1.15rem, 3.6cqw, 2.1rem);
-      transform: translate(0, 0.12em);
-      -webkit-text-stroke: 0.7px #15ff00;
-    }
-
     .device-values {
       position: absolute;
       top: 0;
-      left: 0;
-      width: 100%;
+      left: var(--bm-panel-left);
+      width: var(--bm-panel-width);
       height: 100%;
       pointer-events: none;
     }
 
     .stat-value {
       position: absolute;
+      left: 0;
+      width: 100%;
       transform: translate(0, -50%);
       text-align: left;
-      font-size: clamp(0.92rem, 2.9cqw, 1.68rem);
+      font-size: clamp(1.01rem, 3.19cqw, 1.85rem);
       font-weight: 700;
       line-height: 1.02;
       text-shadow: none;
@@ -316,7 +361,7 @@ export class BitcoinMinerCard extends LitElement {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 92%;
+      max-width: 100%;
       text-transform: uppercase;
     }
     .val-cyan   { color: #9ffbff; text-shadow: none; }
@@ -325,16 +370,10 @@ export class BitcoinMinerCard extends LitElement {
     .val-amber  { color: #ffd86f; text-shadow: none; }
     .val-danger { color: var(--bm-danger); text-shadow: none; animation: tempAlert 0.9s ease-in-out infinite; }
 
-    .device-values > .value-ip { top: 51.90%; left: 70.00%; width: 24.00%; height: 6.20%; }
-    .device-values > .value-model { top: 59.85%; left: 70.00%; width: 24.00%; height: 6.20%; }
-    .device-values > .value-temp { top: 67.20%; left: 70.00%; width: 24.00%; height: 6.20%; }
-    .device-values > .value-power { top: 74.50%; left: 70.00%; width: 24.00%; height: 6.20%; }
-
-    .accent-danger {
-      color: var(--bm-danger);
-      text-shadow: 0 0 10px rgba(255, 139, 61, 0.95);
-      animation: tempAlert 0.9s ease-in-out infinite;
-    }
+    .device-values > .value-ip { top: var(--bm-ip-top); }
+    .device-values > .value-model { top: var(--bm-model-top); }
+    .device-values > .value-temp { top: var(--bm-temp-top); }
+    .device-values > .value-power { top: var(--bm-power-top); }
 
     @keyframes tempAlert {
       0%, 100% { opacity: 1; }
@@ -342,20 +381,20 @@ export class BitcoinMinerCard extends LitElement {
     }
 
     @media (max-width: 540px) {
-      .title-value { font-size: clamp(0.8rem, 2.8cqw, 1.2rem); }
-      .current-row {
+      .title-value { font-size: clamp(0.88rem, 3.08cqw, 1.32rem); }
+      .hashrate-row {
         left: auto;
         right: 31.5%;
         top: 83.5%;
         width: 58%;
-        font-size: clamp(0.5rem, 1.9cqw, 0.85rem);
+        font-size: clamp(0.55rem, 2.09cqw, 0.94rem);
       }
-      .current.current-only {
-        font-size: clamp(0.95rem, 3cqw, 1.45rem);
+      .hashrate-value {
+        font-size: clamp(1.05rem, 3.3cqw, 1.6rem);
         transform: translate(0, 0.12em);
         -webkit-text-stroke: 0.45px #15ff00;
       }
-      .stat-value { font-size: clamp(0.75rem, 2.6cqw, 1.12rem); }
+      .stat-value { font-size: clamp(0.83rem, 2.86cqw, 1.23rem); }
     }
   `;
 }

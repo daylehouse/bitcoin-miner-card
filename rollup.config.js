@@ -13,7 +13,7 @@ export default {
   plugins: [
     resolve(),
     url({
-      include: ["**/*.ttf"],
+      include: ["**/*.ttf", "**/*.png"],
       limit: 0,
       fileName: "[name][extname]"
     }),

@@ -1,6 +1,6 @@
 {
   "name": "bitcoin-miner-card",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Custom Home Assistant Lovelace card for monitoring Bitcoin miners.",
   "type": "module",
   "main": "dist/bitcoin-miner-card.js",

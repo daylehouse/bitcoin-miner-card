@@ -261,7 +261,7 @@ export class BitcoinMinerCard extends LitElement {
     .title-value {
       position: absolute;
       left: 12.7%;
-      top: 14.0%;
+      top: 17.0%;
       width: 47%;
       color: #ff77de;
       font-family: "Orbitron", "Exo 2", sans-serif;
@@ -342,10 +342,10 @@ export class BitcoinMinerCard extends LitElement {
       font-size: clamp(0.41rem, 0.88vw, 0.76rem);
     }
 
-    .device-values > .value-fire { top: 47.00%; left: 67.80%; width: 16.00%; height: 6.20%; }
-    .device-values > .value-gamma { top: 55.00%; left: 67.80%; width: 16.00%; height: 6.20%; }
-    .device-values > .value-temp { top: 62.00%; left: 67.80%; width: 16.00%; height: 6.20%; }
-    .device-values > .value-power { top: 70.00%; left: 67.80%; width: 16.00%; height: 6.20%; }
+    .device-values > .value-fire { top: 54.00%; left: 70.00%; width: 16.00%; height: 6.20%; }
+    .device-values > .value-gamma { top: 61.00%; left: 70.00%; width: 16.00%; height: 6.20%; }
+    .device-values > .value-temp { top: 68.50%; left: 70.00%; width: 16.00%; height: 6.20%; }
+    .device-values > .value-power { top: 75.50%; left: 70.00%; width: 16.00%; height: 6.20%; }
 
     .accent-cyan { color: var(--bm-edge-alt); }
     .accent-danger {

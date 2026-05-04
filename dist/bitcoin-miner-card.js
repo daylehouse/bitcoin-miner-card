@@ -79,7 +79,7 @@ const ht={attribute:!0,type:String,converter:g,reflect:!1,hasChanged:v},lt=(t=ht
     .title-value {
       position: absolute;
       left: 12.7%;
-      top: 13.2%;
+      top: 17.0%;
       width: 47%;
       color: #ff77de;
       font-family: "Orbitron", "Exo 2", sans-serif;
@@ -160,10 +160,10 @@ const ht={attribute:!0,type:String,converter:g,reflect:!1,hasChanged:v},lt=(t=ht
       font-size: clamp(0.41rem, 0.88vw, 0.76rem);
     }
 
-    .device-values > .value-fire { top: 55.40%; left: 67.80%; width: 24.00%; height: 6.20%; }
-    .device-values > .value-gamma { top: 62.50%; left: 67.80%; width: 24.00%; height: 6.20%; }
-    .device-values > .value-temp { top: 69.70%; left: 67.80%; width: 24.00%; height: 6.20%; }
-    .device-values > .value-power { top: 76.90%; left: 67.80%; width: 24.00%; height: 6.20%; }
+    .device-values > .value-fire { top: 54.00%; left: 70.00%; width: 16.00%; height: 6.20%; }
+    .device-values > .value-gamma { top: 61.00%; left: 70.00%; width: 16.00%; height: 6.20%; }
+    .device-values > .value-temp { top: 68.50%; left: 70.00%; width: 16.00%; height: 6.20%; }
+    .device-values > .value-power { top: 75.50%; left: 70.00%; width: 16.00%; height: 6.20%; }
 
     .accent-cyan { color: var(--bm-edge-alt); }
     .accent-danger {

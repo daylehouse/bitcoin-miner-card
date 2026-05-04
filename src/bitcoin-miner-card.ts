@@ -224,6 +224,7 @@ export class BitcoinMinerCard extends LitElement {
       background: #090615;
       color: var(--bm-text);
       border: 1px solid rgba(255, 103, 205, 0.4);
+      container-type: inline-size;
     }
 
     .stage {
@@ -243,7 +244,7 @@ export class BitcoinMinerCard extends LitElement {
       width: 47%;
       color: #ffffff;
       font-family: "Alien Encounters", sans-serif;
-      font-size: clamp(0.8rem, 2.02vw, 1.72rem);
+      font-size: clamp(0.65rem, 1.98cqw, 1.31rem);
       font-weight: 700;
       letter-spacing: 0.11em;
       line-height: 1;
@@ -256,7 +257,7 @@ export class BitcoinMinerCard extends LitElement {
 
     .current-row {
       position: absolute;
-      left: 11%;
+      left: 16%;
       top: 67.65%;
       width: 40%;
       display: grid;
@@ -264,7 +265,7 @@ export class BitcoinMinerCard extends LitElement {
       gap: 7%;
       align-items: end;
       font-family: "Alien Encounters", sans-serif;
-      font-size: clamp(0.52rem, 1.36vw, 1.18rem);
+      font-size: clamp(0.41rem, 1.31cqw, 0.85rem);
       font-weight: 700;
       letter-spacing: 0.01em;
     }
@@ -290,7 +291,7 @@ export class BitcoinMinerCard extends LitElement {
       grid-column: 2;
       justify-self: end;
       text-align: right;
-      font-size: clamp(1.17rem, 3.06vw, 2.66rem);
+      font-size: clamp(0.77rem, 2.21cqw, 1.42rem);
       transform: translate(-0.88em, 0.12em);
       -webkit-text-stroke: 0.7px #15ff00;
     }
@@ -308,7 +309,7 @@ export class BitcoinMinerCard extends LitElement {
       position: absolute;
       transform: translate(0, -50%);
       text-align: left;
-      font-size: clamp(0.78rem, 1.62vw, 1.4rem);
+      font-size: clamp(0.53rem, 1.42cqw, 0.92rem);
       font-weight: 700;
       line-height: 1.02;
       font-family: "Alien Encounters", sans-serif;
@@ -325,10 +326,10 @@ export class BitcoinMinerCard extends LitElement {
     .val-amber  { color: #ffd86f; text-shadow: none; }
     .val-danger { color: var(--bm-danger); text-shadow: none; animation: tempAlert 0.9s ease-in-out infinite; }
 
-    .device-values > .value-fire { top: 52.90%; left: 70.00%; width: 24.00%; height: 6.20%; }
-    .device-values > .value-gamma { top: 60.85%; left: 70.00%; width: 24.00%; height: 6.20%; }
-    .device-values > .value-temp { top: 68.20%; left: 70.00%; width: 24.00%; height: 6.20%; }
-    .device-values > .value-power { top: 75.50%; left: 70.00%; width: 24.00%; height: 6.20%; }
+    .device-values > .value-fire { top: 51.90%; left: 70.00%; width: 24.00%; height: 6.20%; }
+    .device-values > .value-gamma { top: 59.85%; left: 70.00%; width: 24.00%; height: 6.20%; }
+    .device-values > .value-temp { top: 67.20%; left: 70.00%; width: 24.00%; height: 6.20%; }
+    .device-values > .value-power { top: 74.50%; left: 70.00%; width: 24.00%; height: 6.20%; }
 
     .accent-cyan { color: var(--bm-edge-alt); }
     .accent-danger {
@@ -343,9 +344,14 @@ export class BitcoinMinerCard extends LitElement {
     }
 
     @media (max-width: 540px) {
-      .title-value { font-size: clamp(0.54rem, 1.65vw, 0.9rem); }
-      .current-row { top: 83.1%; font-size: clamp(0.42rem, 1.2vw, 0.68rem); }
-      .stat-value { font-size: clamp(0.35rem, 1.05vw, 0.54rem); }
+      .title-value { font-size: clamp(0.45rem, 1.8cqw, 0.74rem); }
+      .current-row { top: 83.1%; font-size: clamp(0.31rem, 1.31cqw, 0.52rem); }
+      .current.current-only {
+        font-size: clamp(0.65rem, 1.85cqw, 1.03rem);
+        transform: translate(-0.22em, 0.08em);
+        -webkit-text-stroke: 0.45px #15ff00;
+      }
+      .stat-value { font-size: clamp(0.38rem, 1.45cqw, 0.62rem); }
     }
   `;
 }

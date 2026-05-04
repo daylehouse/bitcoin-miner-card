@@ -7,56 +7,162 @@
     <style>
       :root {
         color-scheme: dark;
+        --page-bg: #0d0b16;
+        --panel-bg: rgba(255, 255, 255, 0.04);
+        --panel-border: rgba(255, 255, 255, 0.1);
+        --text-main: #f5efff;
+        --text-dim: rgba(245, 239, 255, 0.68);
+      }
+
+      * {
+        box-sizing: border-box;
       }
 
       body {
         margin: 0;
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background: radial-gradient(circle at 20% 0%, #2a2a2a 0%, #141414 55%, #0d0d0d 100%);
-        color: #efefef;
         min-height: 100vh;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background:
+          radial-gradient(circle at top center, rgba(255, 51, 187, 0.18), transparent 28%),
+          radial-gradient(circle at bottom left, rgba(87, 36, 255, 0.14), transparent 30%),
+          var(--page-bg);
+        color: var(--text-main);
       }
 
       header {
-        padding: 14px 16px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-        background: rgba(0, 0, 0, 0.28);
-        backdrop-filter: blur(6px);
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 22px 20px 12px;
       }
 
       h1 {
         margin: 0;
-        font-size: 16px;
-        letter-spacing: 0.02em;
+        font-size: 20px;
         font-weight: 650;
+        letter-spacing: 0.03em;
       }
 
-      p {
-        margin: 6px 0 0;
-        opacity: 0.8;
-        font-size: 13px;
+      header p {
+        margin: 8px 0 0;
+        color: var(--text-dim);
+        font-size: 14px;
+        line-height: 1.5;
       }
 
       main {
-        padding: 16px;
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 12px 20px 28px;
       }
 
-      .workspace {
-        width: min(100%, 1280px);
-        margin: 0 auto;
+      .preview-grid {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 320px;
-        gap: 16px;
+        grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+        gap: 20px;
         align-items: start;
       }
 
-      .preview-shell {
-        width: 100%;
-        position: relative;
+      .preview-card,
+      .notes-card {
+        background: var(--panel-bg);
+        border: 1px solid var(--panel-border);
+        border-radius: 20px;
+        backdrop-filter: blur(10px);
       }
 
-      .card-wrap {
-        width: min(100%, 1050px);
+      .preview-card {
+        padding: 18px;
+      }
+
+      .notes-card {
+        padding: 18px 18px 16px;
+      }
+
+      .section-title {
+        margin: 0 0 14px;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.75);
+      }
+
+      .surface-stack {
+        display: grid;
+        gap: 20px;
+      }
+
+      .sections-shell {
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01)),
+          rgba(7, 7, 13, 0.52);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 16px;
+        padding: 14px;
+      }
+
+      .sections-grid {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .section-slot {
+        grid-column: 1 / -1;
+      }
+
+      .section-slot.desktop {
+        grid-column: span 8;
+      }
+
+      .section-slot.mobile {
+        grid-column: span 12;
+      }
+
+      .ha-surface {
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02)),
+          #12101c;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 18px;
+        padding: 18px;
+      }
+
+      .surface-label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+        color: var(--text-dim);
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .surface-metrics {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .metric-chip {
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 999px;
+        padding: 4px 10px;
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 11px;
+      }
+
+      .card-host {
+        margin: 0 auto;
+      }
+
+      .card-host.desktop {
+        width: min(100%, 760px);
+      }
+
+      .card-host.mobile {
+        width: min(100%, 474px);
       }
 
       bitcoin-miner-card {
@@ -64,232 +170,89 @@
         width: 100%;
       }
 
-      .controls {
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 12px;
-        background: rgba(0, 0, 0, 0.3);
-        backdrop-filter: blur(5px);
-        padding: 12px;
-      }
-
-      .controls h2 {
-        margin: 0 0 8px;
+      .notes-card ul {
+        margin: 0;
+        padding-left: 18px;
+        color: var(--text-dim);
         font-size: 14px;
+        line-height: 1.65;
       }
 
-      .controls p {
-        margin: 0 0 10px;
-        font-size: 12px;
-        opacity: 0.9;
+      .notes-card li + li {
+        margin-top: 8px;
       }
 
-      .group {
-        border-top: 1px solid rgba(255, 255, 255, 0.12);
-        padding-top: 10px;
-        margin-top: 10px;
-      }
-
-      .group h3 {
-        margin: 0 0 8px;
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        opacity: 0.9;
-      }
-
-      label {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 8px;
-        font-size: 12px;
-        margin-bottom: 6px;
-      }
-
-      input[type="range"] {
-        grid-column: 1 / span 2;
-        width: 100%;
-      }
-
-      .value {
-        min-width: 54px;
-        text-align: right;
-        opacity: 0.92;
-      }
-
-      .actions {
-        display: flex;
-        gap: 8px;
-        margin-top: 10px;
-      }
-
-      button {
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        background: rgba(255, 255, 255, 0.08);
-        color: #fff;
-        border-radius: 8px;
-        font-size: 12px;
-        padding: 6px 10px;
-        cursor: pointer;
-      }
-
-      button:hover {
-        background: rgba(255, 255, 255, 0.13);
-      }
-
-      textarea {
-        width: 100%;
-        margin-top: 10px;
-        min-height: 180px;
-        resize: vertical;
-        border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        background: rgba(0, 0, 0, 0.45);
-        color: #eaeaea;
+      .notes-card code {
         font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-        font-size: 11px;
-        line-height: 1.45;
-        padding: 8px;
-        box-sizing: border-box;
+        color: var(--text-main);
       }
 
       @media (max-width: 980px) {
-        .workspace {
+        .preview-grid {
           grid-template-columns: 1fr;
-        }
-
-        .card-wrap {
-          max-width: 100%;
         }
       }
     </style>
   </head>
   <body>
     <header>
-      <h1>Bitcoin Miner Card Local Preview</h1>
-      <p>Drag the cyan and magenta guide boxes directly on the card, then copy generated CSS.</p>
+      <h1>Bitcoin Miner Card Preview</h1>
+      <p>
+        Production-style preview only. This page uses the built card exactly as shipped and shows two Home Assistant-like
+        render widths: desktop and mobile/sections.
+      </p>
     </header>
+
     <main>
-      <div class="workspace">
-        <div class="preview-shell">
-          <div class="card-wrap" id="root"></div>
-        </div>
-        <aside class="controls">
-          <h2>Layout Editor</h2>
-          <p>Drag guides and value labels on card to move. Use sliders for size and per-value top/left % offsets.</p>
+      <div class="preview-grid">
+        <section class="preview-card">
+          <h2 class="section-title">Card Render</h2>
+          <div class="surface-stack">
+            <div class="ha-surface">
+              <div class="surface-label">
+                <span>Desktop View</span>
+                <div class="surface-metrics">
+                  <span class="metric-chip">width: 760px max</span>
+                  <span class="metric-chip">ha sections-like</span>
+                </div>
+              </div>
+              <div class="sections-shell">
+                <div class="sections-grid">
+                  <div class="section-slot desktop">
+                    <div class="card-host desktop" id="desktop-root"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-          <section class="group">
-            <h3>Current Row</h3>
-            <label>
-              Width
-              <span class="value" id="current-width-value"></span>
-              <input id="current-width" type="range" min="30" max="60" step="0.05" />
-            </label>
-          </section>
-
-          <section class="group">
-            <h3>Title Area Guide</h3>
-            <label>
-              Width
-              <span class="value" id="device-width-value"></span>
-              <input id="device-width" type="range" min="12" max="46" step="0.05" />
-            </label>
-            <label>
-              Height
-              <span class="value" id="device-height-value"></span>
-              <input id="device-height" type="range" min="8" max="28" step="0.05" />
-            </label>
-          </section>
-
-          <section class="group">
-            <h3>Value Positions</h3>
-            <label>
-              Fire Top
-              <span class="value" id="row1x-value"></span>
-              <input id="row1x" type="range" min="0" max="100" step="0.1" />
-            </label>
-            <label>
-              Fire Left
-              <span class="value" id="row1y-value"></span>
-              <input id="row1y" type="range" min="0" max="100" step="0.1" />
-            </label>
-            <label>
-              Gamma Top
-              <span class="value" id="row2x-value"></span>
-              <input id="row2x" type="range" min="0" max="100" step="0.1" />
-            </label>
-            <label>
-              Gamma Left
-              <span class="value" id="row2y-value"></span>
-              <input id="row2y" type="range" min="0" max="100" step="0.1" />
-            </label>
-            <label>
-              Temp Top
-              <span class="value" id="row3x-value"></span>
-              <input id="row3x" type="range" min="0" max="100" step="0.1" />
-            </label>
-            <label>
-              Temp Left
-              <span class="value" id="row3y-value"></span>
-              <input id="row3y" type="range" min="0" max="100" step="0.1" />
-            </label>
-            <label>
-              Power Top
-              <span class="value" id="row4x-value"></span>
-              <input id="row4x" type="range" min="0" max="100" step="0.1" />
-            </label>
-            <label>
-              Power Left
-              <span class="value" id="row4y-value"></span>
-              <input id="row4y" type="range" min="0" max="100" step="0.1" />
-            </label>
-            <label>
-              Fire Width
-              <span class="value" id="row1w-value"></span>
-              <input id="row1w" type="range" min="2" max="20" step="0.1" />
-            </label>
-            <label>
-              Fire Height
-              <span class="value" id="row1h-value"></span>
-              <input id="row1h" type="range" min="2" max="15" step="0.1" />
-            </label>
-            <label>
-              Gamma Width
-              <span class="value" id="row2w-value"></span>
-              <input id="row2w" type="range" min="2" max="20" step="0.1" />
-            </label>
-            <label>
-              Gamma Height
-              <span class="value" id="row2h-value"></span>
-              <input id="row2h" type="range" min="2" max="15" step="0.1" />
-            </label>
-            <label>
-              Temp Width
-              <span class="value" id="row3w-value"></span>
-              <input id="row3w" type="range" min="2" max="20" step="0.1" />
-            </label>
-            <label>
-              Temp Height
-              <span class="value" id="row3h-value"></span>
-              <input id="row3h" type="range" min="2" max="15" step="0.1" />
-            </label>
-            <label>
-              Power Width
-              <span class="value" id="row4w-value"></span>
-              <input id="row4w" type="range" min="2" max="20" step="0.1" />
-            </label>
-            <label>
-              Power Height
-              <span class="value" id="row4h-value"></span>
-              <input id="row4h" type="range" min="2" max="15" step="0.1" />
-            </label>
-          </section>
-
-          <div class="actions">
-            <button id="copy-css" type="button">Copy CSS</button>
-            <button id="reset-css" type="button">Reset</button>
+            <div class="ha-surface">
+              <div class="surface-label">
+                <span>Mobile / Sections View</span>
+                <div class="surface-metrics">
+                  <span class="metric-chip">width: 474px max</span>
+                  <span class="metric-chip">ha sections-like</span>
+                </div>
+              </div>
+              <div class="sections-shell">
+                <div class="sections-grid">
+                  <div class="section-slot mobile">
+                    <div class="card-host mobile" id="mobile-root"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
+        </section>
 
-          <textarea id="css-output" readonly></textarea>
+        <aside class="notes-card">
+          <h2 class="section-title">Preview Notes</h2>
+          <ul>
+            <li>No drag guides, sliders, overlays, or editor chrome remain on this page.</li>
+            <li>Both previews mount the real built component from <code>dist/bitcoin-miner-card.js</code>.</li>
+            <li>Desktop and mobile previews now both sit inside a simplified Home Assistant Sections-style shell.</li>
+            <li>The mobile view is constrained to <code>474px</code> to mirror the Home Assistant screenshot footprint.</li>
+            <li>Mock entity values animate slightly so you can verify live rendering without changing layout behavior.</li>
+          </ul>
         </aside>
       </div>
     </main>
@@ -297,21 +260,22 @@
     <script type="module">
       import "../dist/bitcoin-miner-card.js";
 
-      const card = document.createElement("bitcoin-miner-card");
-      const root = document.getElementById("root");
-      root.appendChild(card);
+      const createCard = (rootId) => {
+        const card = document.createElement("bitcoin-miner-card");
+        document.getElementById(rootId).appendChild(card);
+        card.setConfig({
+          type: "custom:bitcoin-miner-card",
+          title_entity: "sensor.card_title",
+          miner_name_entity: "sensor.ip_address",
+          hashrate_entity: "sensor.hashrate",
+          temperature_entity: "sensor.temperature",
+          power_entity: "sensor.power",
+          model_entity: "sensor.model"
+        });
+        return card;
+      };
 
-      card.setConfig({
-        type: "custom:bitcoin-miner-card",
-        title: "Crypto Miner Stats",
-        miner_name_entity: "sensor.miner_name",
-        hashrate_entity: "sensor.hashrate",
-        temperature_entity: "sensor.temperature",
-        power_entity: "sensor.power",
-        model_entity: "sensor.model",
-        overheat_threshold: 85,
-        base_image: "/dist/background-v2.png"
-      });
+      const cards = [createCard("desktop-root"), createCard("mobile-root")];
 
       const makeState = (state, unit = "") => ({
         state: String(state),
@@ -319,488 +283,36 @@
       });
 
       const baseStates = {
-        "sensor.miner_name": makeState("fire"),
+        "sensor.card_title": makeState("FIRE"),
+        "sensor.ip_address": makeState("192.168.3.68"),
         "sensor.model": makeState("Gamma"),
-        "sensor.hashrate": makeState("1118.32", "GH/s"),
-        "sensor.temperature": makeState("63.10", "\u00b0C"),
+        "sensor.hashrate": makeState("1078.89", "GH/s"),
+        "sensor.temperature": makeState("63.12", "°C"),
         "sensor.power": makeState("17.57", "W")
       };
 
-      const applyStates = (states) => {
-        card.hass = { states };
+      const renderStates = (states) => {
+        cards.forEach((card) => {
+          card.hass = { states };
+        });
       };
 
-      applyStates(baseStates);
+      renderStates(baseStates);
 
       let tick = 0;
       setInterval(() => {
         tick += 1;
-        const hr = 1110 + Math.sin(tick / 2.2) * 25;
-        const t = 62.6 + Math.sin(tick / 3.1) * 0.9;
-        const p = 17.5 + Math.cos(tick / 2.8) * 0.22;
+        const hashrate = 1078.89 + Math.sin(tick / 2.4) * 8.5;
+        const temperature = 63.12 + Math.sin(tick / 3.2) * 0.55;
+        const power = 17.57 + Math.cos(tick / 2.6) * 0.12;
 
-        applyStates({
+        renderStates({
           ...baseStates,
-          "sensor.hashrate": makeState(hr.toFixed(2), "GH/s"),
-          "sensor.temperature": makeState(t.toFixed(2), "\u00b0C"),
-          "sensor.power": makeState(p.toFixed(2), "W")
+          "sensor.hashrate": makeState(hashrate.toFixed(2), "GH/s"),
+          "sensor.temperature": makeState(temperature.toFixed(2), "°C"),
+          "sensor.power": makeState(power.toFixed(2), "W")
         });
       }, 1300);
-
-      const editor = {
-        current: { left: 10.65, top: 67.65, width: 45.1 },
-        device: { left: 10.91, top: 14.45, width: 43.7, height: 8 },
-        rows: [
-          { top: 23.74, left: 100, width: 8, height: 6 },
-          { top: 42, left: 90.5, width: 8, height: 6 },
-          { top: 53.69, left: 54.22, width: 8, height: 6 },
-          { top: 64.25, left: 94.42, width: 8, height: 6 }
-        ]
-      };
-
-      let stageEl;
-      let styleEl;
-      let guideCurrent;
-      let guideDevice;
-      let uiStyleEl;
-      const guideValues = [null, null, null, null];
-      const valueNames = ["fire", "gamma", "temp", "power"];
-
-      const controls = {
-        currentWidth: document.getElementById("current-width"),
-        deviceWidth: document.getElementById("device-width"),
-        deviceHeight: document.getElementById("device-height"),
-        row1x: document.getElementById("row1x"),
-        row1y: document.getElementById("row1y"),
-        row2x: document.getElementById("row2x"),
-        row2y: document.getElementById("row2y"),
-        row3x: document.getElementById("row3x"),
-        row3y: document.getElementById("row3y"),
-        row4x: document.getElementById("row4x"),
-        row4y: document.getElementById("row4y"),
-        row1w: document.getElementById("row1w"),
-        row1h: document.getElementById("row1h"),
-        row2w: document.getElementById("row2w"),
-        row2h: document.getElementById("row2h"),
-        row3w: document.getElementById("row3w"),
-        row3h: document.getElementById("row3h"),
-        row4w: document.getElementById("row4w"),
-        row4h: document.getElementById("row4h"),
-        output: document.getElementById("css-output"),
-        copy: document.getElementById("copy-css"),
-        reset: document.getElementById("reset-css")
-      };
-
-      const valueEls = {
-        currentWidth: document.getElementById("current-width-value"),
-        deviceWidth: document.getElementById("device-width-value"),
-        deviceHeight: document.getElementById("device-height-value"),
-        row1x: document.getElementById("row1x-value"),
-        row1y: document.getElementById("row1y-value"),
-        row2x: document.getElementById("row2x-value"),
-        row2y: document.getElementById("row2y-value"),
-        row3x: document.getElementById("row3x-value"),
-        row3y: document.getElementById("row3y-value"),
-        row4x: document.getElementById("row4x-value"),
-        row4y: document.getElementById("row4y-value"),
-        row1w: document.getElementById("row1w-value"),
-        row1h: document.getElementById("row1h-value"),
-        row2w: document.getElementById("row2w-value"),
-        row2h: document.getElementById("row2h-value"),
-        row3w: document.getElementById("row3w-value"),
-        row3h: document.getElementById("row3h-value"),
-        row4w: document.getElementById("row4w-value"),
-        row4h: document.getElementById("row4h-value")
-      };
-
-      const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
-      const pct = (v) => Number(v).toFixed(2);
-
-      const cssText = () => `
-.current-row {
-  left: ${pct(editor.current.left)}%;
-  top: ${pct(editor.current.top)}%;
-  width: ${pct(editor.current.width)}%;
-}
-
-.device-values {
-  left: ${pct(editor.device.left)}%;
-  top: ${pct(editor.device.top)}%;
-  width: ${pct(editor.device.width)}%;
-  height: ${pct(editor.device.height)}%;
-}
-
-.device-values > .value-fire { top: ${pct(editor.rows[0].top)}%; left: ${pct(editor.rows[0].left)}%; width: ${pct(editor.rows[0].width)}%; height: ${pct(editor.rows[0].height)}%; }
-.device-values > .value-gamma { top: ${pct(editor.rows[1].top)}%; left: ${pct(editor.rows[1].left)}%; width: ${pct(editor.rows[1].width)}%; height: ${pct(editor.rows[1].height)}%; }
-.device-values > .value-temp { top: ${pct(editor.rows[2].top)}%; left: ${pct(editor.rows[2].left)}%; width: ${pct(editor.rows[2].width)}%; height: ${pct(editor.rows[2].height)}%; }
-.device-values > .value-power { top: ${pct(editor.rows[3].top)}%; left: ${pct(editor.rows[3].left)}%; width: ${pct(editor.rows[3].width)}%; height: ${pct(editor.rows[3].height)}%; }
-`.trim();
-
-      const updateValueLabels = () => {
-        valueEls.currentWidth.textContent = `${pct(editor.current.width)}%`;
-        valueEls.deviceWidth.textContent = `${pct(editor.device.width)}%`;
-        valueEls.deviceHeight.textContent = `${pct(editor.device.height)}%`;
-        valueEls.row1x.textContent = `${pct(editor.rows[0].top)}%`;
-        valueEls.row1y.textContent = `${pct(editor.rows[0].left)}%`;
-        valueEls.row2x.textContent = `${pct(editor.rows[1].top)}%`;
-        valueEls.row2y.textContent = `${pct(editor.rows[1].left)}%`;
-        valueEls.row3x.textContent = `${pct(editor.rows[2].top)}%`;
-        valueEls.row3y.textContent = `${pct(editor.rows[2].left)}%`;
-        valueEls.row4x.textContent = `${pct(editor.rows[3].top)}%`;
-        valueEls.row4y.textContent = `${pct(editor.rows[3].left)}%`;
-        valueEls.row1w.textContent = `${pct(editor.rows[0].width)}%`;
-        valueEls.row1h.textContent = `${pct(editor.rows[0].height)}%`;
-        valueEls.row2w.textContent = `${pct(editor.rows[1].width)}%`;
-        valueEls.row2h.textContent = `${pct(editor.rows[1].height)}%`;
-        valueEls.row3w.textContent = `${pct(editor.rows[2].width)}%`;
-        valueEls.row3h.textContent = `${pct(editor.rows[2].height)}%`;
-        valueEls.row4w.textContent = `${pct(editor.rows[3].width)}%`;
-        valueEls.row4h.textContent = `${pct(editor.rows[3].height)}%`;
-      };
-
-      const syncInputs = () => {
-        controls.currentWidth.value = String(editor.current.width);
-        controls.deviceWidth.value = String(editor.device.width);
-        controls.deviceHeight.value = String(editor.device.height);
-        controls.row1x.value = String(editor.rows[0].top);
-        controls.row1y.value = String(editor.rows[0].left);
-        controls.row2x.value = String(editor.rows[1].top);
-        controls.row2y.value = String(editor.rows[1].left);
-        controls.row3x.value = String(editor.rows[2].top);
-        controls.row3y.value = String(editor.rows[2].left);
-        controls.row4x.value = String(editor.rows[3].top);
-        controls.row4y.value = String(editor.rows[3].left);
-        controls.row1w.value = String(editor.rows[0].width);
-        controls.row1h.value = String(editor.rows[0].height);
-        controls.row2w.value = String(editor.rows[1].width);
-        controls.row2h.value = String(editor.rows[1].height);
-        controls.row3w.value = String(editor.rows[2].width);
-        controls.row3h.value = String(editor.rows[2].height);
-        controls.row4w.value = String(editor.rows[3].width);
-        controls.row4h.value = String(editor.rows[3].height);
-      };
-
-      const applyEditorCss = () => {
-        if (!styleEl || !guideCurrent || !guideDevice) {
-          return;
-        }
-
-        styleEl.textContent = cssText();
-        controls.output.value = cssText();
-        updateValueLabels();
-        syncInputs();
-
-        guideCurrent.style.left = `${editor.current.left}%`;
-        guideCurrent.style.top = `${editor.current.top}%`;
-        guideCurrent.style.width = `${editor.current.width}%`;
-
-        guideDevice.style.left = `${editor.device.left}%`;
-        guideDevice.style.top = `${editor.device.top}%`;
-        guideDevice.style.width = `${editor.device.width}%`;
-        guideDevice.style.height = `${editor.device.height}%`;
-
-        guideValues.forEach((guide, index) => {
-          if (!guide) {
-            return;
-          }
-          guide.style.left = `${editor.rows[index].left}%`;
-          guide.style.top = `${editor.rows[index].top}%`;
-          guide.style.width = `${editor.rows[index].width}%`;
-          guide.style.height = `${editor.rows[index].height}%`;
-        });
-      };
-
-      const makeGuideDraggable = (guideEl, target) => {
-        if (guideEl.dataset.dragBound === "true") {
-          return;
-        }
-        guideEl.dataset.dragBound = "true";
-
-        let drag = null;
-
-        guideEl.addEventListener("pointerdown", (ev) => {
-          ev.preventDefault();
-          ev.stopPropagation();
-          const stageRect = stageEl.getBoundingClientRect();
-          drag = {
-            startX: ev.clientX,
-            startY: ev.clientY,
-            stageRect,
-            origLeft: target.left,
-            origTop: target.top
-          };
-          guideEl.setPointerCapture(ev.pointerId);
-        });
-
-        guideEl.addEventListener("pointermove", (ev) => {
-          if (!drag) {
-            return;
-          }
-
-          const dxPct = ((ev.clientX - drag.startX) / drag.stageRect.width) * 100;
-          const dyPct = ((ev.clientY - drag.startY) / drag.stageRect.height) * 100;
-
-          target.left = clamp(drag.origLeft + dxPct, 0, 99);
-          target.top = clamp(drag.origTop + dyPct, 0, 99);
-          applyEditorCss();
-        });
-
-        guideEl.addEventListener("pointerup", () => {
-          drag = null;
-        });
-
-        guideEl.addEventListener("pointercancel", () => {
-          drag = null;
-        });
-      };
-
-      const createValueGuides = () => {
-        const shadow = card.shadowRoot;
-        if (!shadow || !stageEl) {
-          return;
-        }
-
-        valueNames.forEach((name, index) => {
-          if (guideValues[index]) {
-            return;
-          }
-          const guideEl = document.createElement("div");
-          guideEl.className = "editor-guide value-guide";
-          guideEl.dataset.valueIndex = String(index);
-          guideEl.dataset.label = `${name} (drag)`;
-          stageEl.appendChild(guideEl);
-          guideValues[index] = guideEl;
-
-          makeGuideDraggable(guideEl, editor.rows[index]);
-        });
-      };
-
-      const bindControl = (input, onChange) => {
-        input.addEventListener("input", () => {
-          onChange(Number(input.value));
-          applyEditorCss();
-        });
-      };
-
-      const initEditor = () => {
-        const shadow = card.shadowRoot;
-        if (!shadow) {
-          return false;
-        }
-
-        stageEl = shadow.querySelector(".stage");
-        if (!stageEl) {
-          return false;
-        }
-
-        styleEl = shadow.querySelector("style[data-editor-overrides]");
-        if (!styleEl) {
-          styleEl = document.createElement("style");
-          styleEl.setAttribute("data-editor-overrides", "true");
-          shadow.appendChild(styleEl);
-        }
-
-        uiStyleEl = shadow.querySelector("style[data-editor-ui]");
-        if (!uiStyleEl) {
-          uiStyleEl = document.createElement("style");
-          uiStyleEl.setAttribute("data-editor-ui", "true");
-          uiStyleEl.textContent = `
-            .editor-guide {
-              position: absolute;
-              border: 1px dashed rgba(255, 255, 255, 0.9);
-              background: rgba(255, 255, 255, 0.08);
-              border-radius: 6px;
-              z-index: 30;
-              cursor: move;
-              user-select: none;
-              touch-action: none;
-              box-sizing: border-box;
-            }
-
-            .editor-guide::before {
-              content: attr(data-label);
-              position: absolute;
-              top: -20px;
-              left: 0;
-              padding: 1px 6px;
-              border-radius: 999px;
-              font-size: 10px;
-              font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-              white-space: nowrap;
-            }
-
-            .editor-guide.current-guide {
-              border-color: #51e7ff;
-              background: rgba(81, 231, 255, 0.12);
-              height: 8.4%;
-            }
-
-            .editor-guide.current-guide::before {
-              background: #51e7ff;
-              color: #072027;
-            }
-
-            .editor-guide.device-guide {
-              border-color: #ff74d8;
-              background: rgba(255, 116, 216, 0.12);
-              z-index: 24;
-            }
-
-            .editor-guide.device-guide::before {
-              background: #ff74d8;
-              color: #300722;
-            }
-
-            .editor-guide.value-guide {
-              width: 8%;
-              height: 6%;
-              z-index: 50;
-              border-color: #51e7ff;
-              background: rgba(81, 231, 255, 0.08);
-            }
-
-            .editor-guide.value-guide::before {
-              background: #51e7ff;
-              color: #072027;
-            }
-
-            .editor-guide.value-guide:hover {
-              background: rgba(81, 231, 255, 0.18);
-            }
-          `;
-          shadow.appendChild(uiStyleEl);
-        }
-
-        guideCurrent = stageEl.querySelector(".editor-guide.current-guide");
-        if (!guideCurrent) {
-          guideCurrent = document.createElement("div");
-          guideCurrent.className = "editor-guide current-guide";
-          guideCurrent.dataset.label = "current-row (drag)";
-          stageEl.appendChild(guideCurrent);
-        }
-
-        guideDevice = stageEl.querySelector(".editor-guide.device-guide");
-        if (!guideDevice) {
-          guideDevice = document.createElement("div");
-          guideDevice.className = "editor-guide device-guide";
-          guideDevice.dataset.label = "title-area (drag)";
-          stageEl.appendChild(guideDevice);
-        }
-
-        makeGuideDraggable(guideCurrent, editor.current);
-        makeGuideDraggable(guideDevice, editor.device);
-        createValueGuides();
-
-        bindControl(controls.currentWidth, (v) => {
-          editor.current.width = v;
-        });
-
-        bindControl(controls.deviceWidth, (v) => {
-          editor.device.width = v;
-        });
-
-        bindControl(controls.deviceHeight, (v) => {
-          editor.device.height = v;
-        });
-
-        bindControl(controls.row1x, (v) => {
-          editor.rows[0].top = v;
-        });
-
-        bindControl(controls.row1y, (v) => {
-          editor.rows[0].left = v;
-        });
-
-        bindControl(controls.row2x, (v) => {
-          editor.rows[1].top = v;
-        });
-
-        bindControl(controls.row2y, (v) => {
-          editor.rows[1].left = v;
-        });
-
-        bindControl(controls.row3x, (v) => {
-          editor.rows[2].top = v;
-        });
-
-        bindControl(controls.row3y, (v) => {
-          editor.rows[2].left = v;
-        });
-
-        bindControl(controls.row4x, (v) => {
-          editor.rows[3].top = v;
-        });
-
-        bindControl(controls.row4y, (v) => {
-          editor.rows[3].left = v;
-        });
-
-        bindControl(controls.row1w, (v) => {
-          editor.rows[0].width = v;
-        });
-
-        bindControl(controls.row1h, (v) => {
-          editor.rows[0].height = v;
-        });
-
-        bindControl(controls.row2w, (v) => {
-          editor.rows[1].width = v;
-        });
-
-        bindControl(controls.row2h, (v) => {
-          editor.rows[1].height = v;
-        });
-
-        bindControl(controls.row3w, (v) => {
-          editor.rows[2].width = v;
-        });
-
-        bindControl(controls.row3h, (v) => {
-          editor.rows[2].height = v;
-        });
-
-        bindControl(controls.row4w, (v) => {
-          editor.rows[3].width = v;
-        });
-
-        bindControl(controls.row4h, (v) => {
-          editor.rows[3].height = v;
-        });
-
-        controls.copy.addEventListener("click", async () => {
-          await navigator.clipboard.writeText(controls.output.value);
-          controls.copy.textContent = "Copied";
-          setTimeout(() => {
-            controls.copy.textContent = "Copy CSS";
-          }, 900);
-        });
-
-        controls.reset.addEventListener("click", () => {
-          editor.current = { left: 10.65, top: 67.65, width: 45.1 };
-          editor.device = { left: 10.91, top: 14.45, width: 43.7, height: 8 };
-          editor.rows = [
-            { top: 23.74, left: 100, width: 8, height: 6 },
-            { top: 42, left: 90.5, width: 8, height: 6 },
-            { top: 53.69, left: 54.22, width: 8, height: 6 },
-            { top: 64.25, left: 94.42, width: 8, height: 6 }
-          ];
-          syncInputs();
-          applyEditorCss();
-        });
-
-        syncInputs();
-        applyEditorCss();
-        return true;
-      };
-
-      const waitForEditor = () => {
-        if (initEditor()) {
-          return;
-        }
-        requestAnimationFrame(waitForEditor);
-      };
-
-      waitForEditor();
     </script>
   </body>
 </html>

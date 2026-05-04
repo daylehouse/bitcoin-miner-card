@@ -232,7 +232,7 @@ export class BitcoinMinerCard extends LitElement {
       width: 47%;
       color: #ffffff;
       font-family: "Alien Encounters", sans-serif;
-      font-size: clamp(0.65rem, 1.98cqw, 1.31rem);
+      font-size: clamp(0.95rem, 3.2cqw, 1.8rem);
       font-weight: 700;
       letter-spacing: 0.11em;
       line-height: 1;
@@ -253,7 +253,7 @@ export class BitcoinMinerCard extends LitElement {
       gap: 7%;
       align-items: end;
       font-family: "Alien Encounters", sans-serif;
-      font-size: clamp(0.41rem, 1.31cqw, 0.85rem);
+      font-size: clamp(0.55rem, 1.8cqw, 1.1rem);
       font-weight: 700;
       letter-spacing: 0.01em;
     }
@@ -270,7 +270,7 @@ export class BitcoinMinerCard extends LitElement {
       grid-column: 2;
       justify-self: end;
       text-align: right;
-      font-size: clamp(0.77rem, 2.21cqw, 1.42rem);
+      font-size: clamp(1.15rem, 3.6cqw, 2.1rem);
       transform: translate(-0.88em, 0.12em);
       -webkit-text-stroke: 0.7px #15ff00;
     }
@@ -288,7 +288,7 @@ export class BitcoinMinerCard extends LitElement {
       position: absolute;
       transform: translate(0, -50%);
       text-align: left;
-      font-size: clamp(0.53rem, 1.42cqw, 0.92rem);
+      font-size: clamp(0.78rem, 2.45cqw, 1.45rem);
       font-weight: 700;
       line-height: 1.02;
       font-family: "Alien Encounters", sans-serif;
@@ -322,14 +322,14 @@ export class BitcoinMinerCard extends LitElement {
     }
 
     @media (max-width: 540px) {
-      .title-value { font-size: clamp(0.45rem, 1.8cqw, 0.74rem); }
-      .current-row { top: 83.1%; font-size: clamp(0.31rem, 1.31cqw, 0.52rem); }
+      .title-value { font-size: clamp(0.8rem, 2.8cqw, 1.2rem); }
+      .current-row { top: 83.1%; font-size: clamp(0.5rem, 1.9cqw, 0.85rem); }
       .current.current-only {
-        font-size: clamp(0.65rem, 1.85cqw, 1.03rem);
+        font-size: clamp(0.95rem, 3cqw, 1.45rem);
         transform: translate(-0.22em, 0.08em);
         -webkit-text-stroke: 0.45px #15ff00;
       }
-      .stat-value { font-size: clamp(0.38rem, 1.45cqw, 0.62rem); }
+      .stat-value { font-size: clamp(0.62rem, 2.2cqw, 0.95rem); }
     }
   `;
 }

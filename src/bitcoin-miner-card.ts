@@ -144,8 +144,8 @@ export class BitcoinMinerCard extends LitElement {
           </div>
 
           <div class="device-values">
-            <span class="stat-value value-fire val-white">${minerName}</span>
-            <span class="stat-value value-gamma val-pink">${model.value}</span>
+            <span class="stat-value value-ip val-white">${minerName}</span>
+            <span class="stat-value value-model val-pink">${model.value}</span>
             <span class="stat-value value-temp ${isOverheat ? 'val-danger' : 'val-amber'}">${this.formatState(temperature)}</span>
             <span class="stat-value value-power val-cyan">${this.formatState(power)}</span>
           </div>
@@ -305,8 +305,8 @@ export class BitcoinMinerCard extends LitElement {
     .val-amber  { color: #ffd86f; text-shadow: none; }
     .val-danger { color: var(--bm-danger); text-shadow: none; animation: tempAlert 0.9s ease-in-out infinite; }
 
-    .device-values > .value-fire { top: 51.90%; left: 70.00%; width: 24.00%; height: 6.20%; }
-    .device-values > .value-gamma { top: 59.85%; left: 70.00%; width: 24.00%; height: 6.20%; }
+    .device-values > .value-ip { top: 51.90%; left: 70.00%; width: 24.00%; height: 6.20%; }
+    .device-values > .value-model { top: 59.85%; left: 70.00%; width: 24.00%; height: 6.20%; }
     .device-values > .value-temp { top: 67.20%; left: 70.00%; width: 24.00%; height: 6.20%; }
     .device-values > .value-power { top: 74.50%; left: 70.00%; width: 24.00%; height: 6.20%; }
 

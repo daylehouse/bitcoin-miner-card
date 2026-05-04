@@ -57,7 +57,7 @@
 
       .preview-grid {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+        grid-template-columns: minmax(0, 1fr);
         gap: 20px;
         align-items: start;
       }
@@ -107,12 +107,41 @@
         gap: 12px;
       }
 
+      .sections-meta {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .sections-meta-bar {
+        grid-column: 1 / -1;
+        min-height: 312px;
+        border: 1px dashed rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        background:
+          linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px) 0 0 / calc((100% - 132px) / 12) 100%,
+          linear-gradient(180deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px) 0 0 / 100% 64px,
+          rgba(255, 255, 255, 0.01);
+        position: relative;
+      }
+
+      .sections-meta-label {
+        position: absolute;
+        top: 10px;
+        right: 12px;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.45);
+      }
+
       .section-slot {
         grid-column: 1 / -1;
       }
 
       .section-slot.desktop {
-        grid-column: span 8;
+        grid-column: span 12;
       }
 
       .section-slot.mobile {
@@ -158,7 +187,7 @@
       }
 
       .card-host.desktop {
-        width: min(100%, 760px);
+        width: min(100%, 1040px);
       }
 
       .card-host.mobile {
@@ -212,11 +241,18 @@
               <div class="surface-label">
                 <span>Desktop View</span>
                 <div class="surface-metrics">
-                  <span class="metric-chip">width: 760px max</span>
+                  <span class="metric-chip">width: 1040px max</span>
+                  <span class="metric-chip">12 cols</span>
+                  <span class="metric-chip">5 rows</span>
                   <span class="metric-chip">ha sections-like</span>
                 </div>
               </div>
               <div class="sections-shell">
+                <div class="sections-meta">
+                  <div class="sections-meta-bar">
+                    <div class="sections-meta-label">12 columns / 5 rows</div>
+                  </div>
+                </div>
                 <div class="sections-grid">
                   <div class="section-slot desktop">
                     <div class="card-host desktop" id="desktop-root"></div>
@@ -230,10 +266,17 @@
                 <span>Mobile / Sections View</span>
                 <div class="surface-metrics">
                   <span class="metric-chip">width: 474px max</span>
+                  <span class="metric-chip">12 cols</span>
+                  <span class="metric-chip">5 rows</span>
                   <span class="metric-chip">ha sections-like</span>
                 </div>
               </div>
               <div class="sections-shell">
+                <div class="sections-meta">
+                  <div class="sections-meta-bar">
+                    <div class="sections-meta-label">12 columns / 5 rows</div>
+                  </div>
+                </div>
                 <div class="sections-grid">
                   <div class="section-slot mobile">
                     <div class="card-host mobile" id="mobile-root"></div>
@@ -247,6 +290,8 @@
         <aside class="notes-card">
           <h2 class="section-title">Preview Notes</h2>
           <ul>
+            <li>Render column now uses full available width to better match Home Assistant card scale.</li>
+            <li>Preview metadata now reflects the card's current <code>getGridOptions()</code> footprint: <code>12 columns</code> and <code>5 rows</code>.</li>
             <li>No drag guides, sliders, overlays, or editor chrome remain on this page.</li>
             <li>Both previews mount the real built component from <code>dist/bitcoin-miner-card.js</code>.</li>
             <li>Desktop and mobile previews now both sit inside a simplified Home Assistant Sections-style shell.</li>

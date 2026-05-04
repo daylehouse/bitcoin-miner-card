@@ -1,6 +1,7 @@
 import resolve from "@rollup/plugin-node-resolve";
 import typescript from "@rollup/plugin-typescript";
 import terser from "@rollup/plugin-terser";
+import url from "@rollup/plugin-url";
 
 export default {
   input: "src/bitcoin-miner-card.ts",
@@ -11,6 +12,11 @@ export default {
   },
   plugins: [
     resolve(),
+    url({
+      include: ["**/*.ttf"],
+      limit: 0,
+      fileName: "[name][extname]"
+    }),
     typescript({ tsconfig: "./tsconfig.json" }),
     terser()
   ]

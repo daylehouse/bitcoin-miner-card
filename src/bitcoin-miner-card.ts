@@ -1,9 +1,11 @@
 import { css, html, LitElement, nothing, unsafeCSS } from "lit";
 import { customElement, property } from "lit/decorators.js";
+import alienRegularUrl from "../Alien-Encounters-Regular.ttf";
+import alienBoldUrl from "../Alien-Encounters-Bold.ttf";
 
-const alienRegularUrl = new URL("./alien-encounters-regular.ttf", import.meta.url).toString();
-const alienBoldUrl = new URL("./alien-encounters-bold.ttf", import.meta.url).toString();
 const backgroundImageUrl = new URL("./background-v2.png", import.meta.url).toString();
+const alienRegularFontUrl = new URL(alienRegularUrl, import.meta.url).toString();
+const alienBoldFontUrl = new URL(alienBoldUrl, import.meta.url).toString();
 
 interface HomeAssistant {
   states: Record<string, { state: string; attributes?: Record<string, unknown> }>;
@@ -108,10 +110,10 @@ export class BitcoinMinerCard extends LitElement {
     min_columns: number;
   } {
     return {
-      rows: 4,
-      columns: 6,
-      min_rows: 3,
-      min_columns: 6
+      rows: 5,
+      columns: 12,
+      min_rows: 5,
+      min_columns: 12
     };
   }
 
@@ -121,18 +123,17 @@ export class BitcoinMinerCard extends LitElement {
     }
 
     const titleState = this.readState(this.config.title_entity, "");
-    const title = titleState.value || "";
+    const title = this.normalizeForDisplay(titleState.value || "");
     const hashrate = this.readState(this.config.hashrate_entity, "MH/s");
     const temperature = this.readState(this.config.temperature_entity, "°C");
     const power = this.readState(this.config.power_entity, "W");
     const model = this.readState(this.config.model_entity, "");
     const minerNameState = this.readState(this.config.miner_name_entity, "");
-    const minerName = minerNameState.value;
+    const minerName = this.normalizeForDisplay(minerNameState.value);
 
     const threshold = this.config.overheat_threshold ?? 85;
     const numericTemp = this.parseNumericState(temperature.value);
     const isOverheat = numericTemp !== null && numericTemp >= threshold;
-    const temperatureClass = isOverheat ? "stat-value accent-danger" : "stat-value";
     const stageStyle = `background-image: url('${backgroundImageUrl}')`;
 
     return html`
@@ -145,7 +146,7 @@ export class BitcoinMinerCard extends LitElement {
 
           <div class="device-values">
             <span class="stat-value value-ip val-white">${minerName}</span>
-            <span class="stat-value value-model val-pink">${model.value}</span>
+            <span class="stat-value value-model val-pink">${this.normalizeForDisplay(model.value)}</span>
             <span class="stat-value value-temp ${isOverheat ? 'val-danger' : 'val-amber'}">${this.formatState(temperature)}</span>
             <span class="stat-value value-power val-cyan">${this.formatState(power)}</span>
           </div>
@@ -154,12 +155,16 @@ export class BitcoinMinerCard extends LitElement {
     `;
   }
 
+  private normalizeForDisplay(value: string): string {
+    return value.trim().toUpperCase();
+  }
+
   private formatState(state: { value: string; unit: string }): string {
-    const value = state.value.trim();
+    const value = this.normalizeForDisplay(state.value);
     if (!value) {
       return "";
     }
-    const unit = state.unit.trim();
+    const unit = this.normalizeForDisplay(state.unit);
     return unit ? `${value} ${unit}` : value;
   }
 
@@ -186,25 +191,34 @@ export class BitcoinMinerCard extends LitElement {
 
   static styles = css`
     @font-face {
-      font-family: "Alien Encounters";
-      src: url(${unsafeCSS(alienRegularUrl)}) format("truetype");
+      font-family: "Bitcoin Miner Alien Local";
+      src: url(${unsafeCSS(alienRegularFontUrl)}) format("truetype");
       font-weight: 400;
       font-style: normal;
-      font-display: swap;
+      font-display: block;
     }
 
     @font-face {
-      font-family: "Alien Encounters";
-      src: url(${unsafeCSS(alienBoldUrl)}) format("truetype");
+      font-family: "Bitcoin Miner Alien Local";
+      src: url(${unsafeCSS(alienBoldFontUrl)}) format("truetype");
       font-weight: 700;
       font-style: normal;
-      font-display: swap;
+      font-display: block;
     }
 
     :host {
       --bm-danger: #ff8b3d;
       --bm-text: #ffe9fa;
+      --bm-font-stack: "Bitcoin Miner Alien Local", "Bitcoin Miner Alien", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
       display: block;
+      font-family: var(--bm-font-stack) !important;
+    }
+
+    /* Keep all card text in the shadow DOM on the card-local font stack. */
+    :host *,
+    ha-card,
+    ha-card * {
+      font-family: var(--bm-font-stack) !important;
     }
 
     ha-card {
@@ -214,6 +228,16 @@ export class BitcoinMinerCard extends LitElement {
       color: var(--bm-text);
       border: 1px solid rgba(255, 103, 205, 0.4);
       container-type: inline-size;
+      font-synthesis: none;
+    }
+
+    .stage,
+    .title-value,
+    .current-row,
+    .current,
+    .device-values,
+    .stat-value {
+      font-family: var(--bm-font-stack);
     }
 
     .stage {
@@ -231,7 +255,6 @@ export class BitcoinMinerCard extends LitElement {
       top: 16.0%;
       width: 47%;
       color: #ffffff;
-      font-family: "Alien Encounters", sans-serif;
       font-size: clamp(0.95rem, 3.2cqw, 1.8rem);
       font-weight: 700;
       letter-spacing: 0.11em;
@@ -245,17 +268,13 @@ export class BitcoinMinerCard extends LitElement {
 
     .current-row {
       position: absolute;
-      left: 16%;
+      left: 10.5%;
       top: 67.65%;
-      width: 40%;
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 7%;
-      align-items: end;
-      font-family: "Alien Encounters", sans-serif;
+      width: 52%;
       font-size: clamp(0.55rem, 1.8cqw, 1.1rem);
       font-weight: 700;
       letter-spacing: 0.01em;
+      text-align: right;
     }
 
     .current {
@@ -264,14 +283,15 @@ export class BitcoinMinerCard extends LitElement {
       text-shadow: none;
       overflow: hidden;
       text-overflow: ellipsis;
+      text-transform: uppercase;
     }
 
     .current.current-only {
-      grid-column: 2;
-      justify-self: end;
+      display: block;
+      width: 100%;
       text-align: right;
       font-size: clamp(1.15rem, 3.6cqw, 2.1rem);
-      transform: translate(-0.88em, 0.12em);
+      transform: translate(0, 0.12em);
       -webkit-text-stroke: 0.7px #15ff00;
     }
 
@@ -288,16 +308,16 @@ export class BitcoinMinerCard extends LitElement {
       position: absolute;
       transform: translate(0, -50%);
       text-align: left;
-      font-size: clamp(0.78rem, 2.45cqw, 1.45rem);
+      font-size: clamp(0.92rem, 2.9cqw, 1.68rem);
       font-weight: 700;
       line-height: 1.02;
-      font-family: "Alien Encounters", sans-serif;
       text-shadow: none;
       color: var(--bm-text);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       max-width: 92%;
+      text-transform: uppercase;
     }
     .val-cyan   { color: #9ffbff; text-shadow: none; }
     .val-white  { color: #ffffff; text-shadow: none; }
@@ -323,13 +343,19 @@ export class BitcoinMinerCard extends LitElement {
 
     @media (max-width: 540px) {
       .title-value { font-size: clamp(0.8rem, 2.8cqw, 1.2rem); }
-      .current-row { top: 83.1%; font-size: clamp(0.5rem, 1.9cqw, 0.85rem); }
+      .current-row {
+        left: auto;
+        right: 31.5%;
+        top: 83.5%;
+        width: 58%;
+        font-size: clamp(0.5rem, 1.9cqw, 0.85rem);
+      }
       .current.current-only {
         font-size: clamp(0.95rem, 3cqw, 1.45rem);
-        transform: translate(-0.22em, 0.08em);
+        transform: translate(0, 0.12em);
         -webkit-text-stroke: 0.45px #15ff00;
       }
-      .stat-value { font-size: clamp(0.62rem, 2.2cqw, 0.95rem); }
+      .stat-value { font-size: clamp(0.75rem, 2.6cqw, 1.12rem); }
     }
   `;
 }

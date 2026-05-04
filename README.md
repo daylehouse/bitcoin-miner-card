@@ -18,7 +18,7 @@ A custom Lovelace card for Home Assistant focused on monitoring Bitcoin miner te
 
 1. In Home Assistant, go to HACS.
 2. Open the menu, then select Custom repositories.
-3. Add this repository URL and choose category Plugin.
+3. Add this repository URL and choose category Dashboard.
 4. Install Bitcoin Miner Card.
 5. Restart Home Assistant.
 6. Add the card resource if not auto-added:

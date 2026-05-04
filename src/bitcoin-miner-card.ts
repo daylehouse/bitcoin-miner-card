@@ -174,8 +174,9 @@ export class BitcoinMinerCard extends LitElement {
     const stageStyle = `--bm-base-image: url('${baseImage}')`;
 
     return html`
-      <ha-card .header=${title}>
+      <ha-card>
         <section class="stage" style=${stageStyle}>
+          <div class="title-value">${title}</div>
           <div class="current-row">
             <span class="current cyan">${this.formatState(hashrate)}</span>
             <span class="current pink">${this.formatState(temperature)}</span>
@@ -255,6 +256,24 @@ export class BitcoinMinerCard extends LitElement {
       background-size: cover;
       background-position: center;
       overflow: hidden;
+    }
+
+    .title-value {
+      position: absolute;
+      left: 12.7%;
+      top: 13.2%;
+      width: 47%;
+      color: #ff77de;
+      font-family: "Orbitron", "Exo 2", sans-serif;
+      font-size: clamp(0.74rem, 1.95vw, 1.66rem);
+      font-weight: 800;
+      letter-spacing: 0.055em;
+      line-height: 1;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-shadow: 0 0 8px rgba(255, 120, 224, 0.55);
     }
 
     .current-row {
@@ -341,6 +360,7 @@ export class BitcoinMinerCard extends LitElement {
     }
 
     @media (max-width: 540px) {
+      .title-value { font-size: clamp(0.54rem, 1.65vw, 0.9rem); }
       .current-row { top: 83.1%; font-size: clamp(0.42rem, 1.2vw, 0.68rem); }
       .stat-value { font-size: clamp(0.35rem, 1.05vw, 0.54rem); }
       .stat-value:nth-child(1),

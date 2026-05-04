@@ -32,8 +32,9 @@ const ht={attribute:!0,type:String,converter:g,reflect:!1,hasChanged:v},lt=(t=ht
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */function ct(t){return(e,s)=>"object"==typeof s?lt(t,e,s):((t,e,s)=>{const i=e.hasOwnProperty(s);return e.constructor.createProperty(s,t),i?Object.getOwnPropertyDescriptor(e,s):void 0})(t,e,s)}let dt=class extends ot{static getStubConfig(){return{title:"Crypto Miner Stats",miner_name:"Rig-01"}}static getConfigForm(){return{schema:[{name:"title",selector:{text:{}}},{name:"title_entity",selector:{entity:{}}},{name:"miner_name",selector:{text:{}}},{name:"miner_name_entity",selector:{entity:{}}},{name:"hashrate_entity",selector:{entity:{}}},{name:"temperature_entity",selector:{entity:{}}},{name:"power_entity",selector:{entity:{}}},{name:"model_entity",selector:{entity:{}}},{type:"grid",name:"",flatten:!0,column_min_width:"180px",schema:[{name:"overheat_threshold",selector:{number:{min:0,max:140,step:1,mode:"box",unit_of_measurement:"°C"}}},{name:"base_image",selector:{text:{}}}]}],computeLabel:t=>{switch(t.name){case"title":return"Card Title";case"title_entity":return"Title Entity";case"miner_name":return"Miner Name";case"miner_name_entity":return"Miner Name Entity";case"hashrate_entity":return"Hashrate Entity";case"temperature_entity":return"Temperature Entity";case"power_entity":return"Power Entity";case"model_entity":return"Model Entity";case"overheat_threshold":return"Overheat Threshold";case"base_image":return"Base Image URL";default:return}},computeHelper:t=>{switch(t.name){case"title_entity":return"Optional sensor. Its state overrides Card Title text.";case"miner_name_entity":return"Optional sensor. Its state overrides Miner Name text.";case"base_image":return"Optional path/URL. Defaults to bundled background-v2.png.";default:return}}}}setConfig(t){if(!t)throw new Error("Invalid configuration for bitcoin-miner-card");this.config={title:"Crypto Miner Stats",miner_name:"Rig-01",overheat_threshold:85,...t}}getCardSize(){return 3}getGridOptions(){return{rows:4,columns:6,min_rows:3,min_columns:6}}render(){if(!this.config)return q;const t=this.readState(this.config.title_entity,"").value||this.config.title||"",e=this.readState(this.config.hashrate_entity,"MH/s"),s=this.readState(this.config.temperature_entity,"°C"),i=this.readState(this.config.power_entity,"W"),r=this.readState(this.config.model_entity,""),n=this.readState(this.config.miner_name_entity,"").value,o=this.config.overheat_threshold??85,a=this.parseNumericState(s.value),h=null!==a&&a>=o?"stat-value accent-danger":"stat-value",l=this.resolveAssetUrl(this.config.base_image,"background-v2.png");return B`
-      <ha-card .header=${t}>
+      <ha-card>
         <section class="stage" style=${`--bm-base-image: url('${l}')`}>
+          <div class="title-value">${t}</div>
           <div class="current-row">
             <span class="current cyan">${this.formatState(e)}</span>
             <span class="current pink">${this.formatState(s)}</span>
@@ -73,6 +74,24 @@ const ht={attribute:!0,type:String,converter:g,reflect:!1,hasChanged:v},lt=(t=ht
       background-size: cover;
       background-position: center;
       overflow: hidden;
+    }
+
+    .title-value {
+      position: absolute;
+      left: 12.7%;
+      top: 13.2%;
+      width: 47%;
+      color: #ff77de;
+      font-family: "Orbitron", "Exo 2", sans-serif;
+      font-size: clamp(0.74rem, 1.95vw, 1.66rem);
+      font-weight: 800;
+      letter-spacing: 0.055em;
+      line-height: 1;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-shadow: 0 0 8px rgba(255, 120, 224, 0.55);
     }
 
     .current-row {
@@ -159,6 +178,7 @@ const ht={attribute:!0,type:String,converter:g,reflect:!1,hasChanged:v},lt=(t=ht
     }
 
     @media (max-width: 540px) {
+      .title-value { font-size: clamp(0.54rem, 1.65vw, 0.9rem); }
       .current-row { top: 83.1%; font-size: clamp(0.42rem, 1.2vw, 0.68rem); }
       .stat-value { font-size: clamp(0.35rem, 1.05vw, 0.54rem); }
       .stat-value:nth-child(1),

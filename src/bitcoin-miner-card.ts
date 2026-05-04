@@ -3,6 +3,7 @@ import { customElement, property } from "lit/decorators.js";
 
 const alienRegularUrl = new URL("./alien-encounters-regular.ttf", import.meta.url).toString();
 const alienBoldUrl = new URL("./alien-encounters-bold.ttf", import.meta.url).toString();
+const backgroundImageUrl = new URL("./background-v2.png", import.meta.url).toString();
 
 interface HomeAssistant {
   states: Record<string, { state: string; attributes?: Record<string, unknown> }>;
@@ -17,7 +18,6 @@ interface BitcoinMinerCardConfig {
   power_entity?: string;
   model_entity?: string;
   overheat_threshold?: number;
-  base_image?: string;
 }
 
 interface ConfigFormControl {
@@ -133,8 +133,7 @@ export class BitcoinMinerCard extends LitElement {
     const numericTemp = this.parseNumericState(temperature.value);
     const isOverheat = numericTemp !== null && numericTemp >= threshold;
     const temperatureClass = isOverheat ? "stat-value accent-danger" : "stat-value";
-    const baseImage = this.resolveAssetUrl(this.config.base_image, "background-v2.png");
-    const stageStyle = `--bm-base-image: url('${baseImage}')`;
+    const stageStyle = `background-image: url('${backgroundImageUrl}')`;
 
     return html`
       <ha-card>
@@ -173,13 +172,6 @@ export class BitcoinMinerCard extends LitElement {
     return Number.isFinite(numeric) ? numeric : null;
   }
 
-  private resolveAssetUrl(configValue: string | undefined, fallbackFile: string): string {
-    if (configValue && configValue.trim().length > 0) {
-      return configValue;
-    }
-    return new URL(`./${fallbackFile}`, import.meta.url).toString();
-  }
-
   private readState(entityId?: string, defaultUnit = ""): { value: string; unit: string } {
     if (!this.hass || !entityId) {
       return { value: "", unit: "" };
@@ -210,11 +202,8 @@ export class BitcoinMinerCard extends LitElement {
     }
 
     :host {
-      --bm-edge: #ff43ba;
-      --bm-edge-alt: #42d3ff;
       --bm-danger: #ff8b3d;
       --bm-text: #ffe9fa;
-      --bm-base-image: none;
       display: block;
     }
 
@@ -231,7 +220,6 @@ export class BitcoinMinerCard extends LitElement {
       position: relative;
       width: 100%;
       aspect-ratio: 3 / 2;
-      background-image: var(--bm-base-image);
       background-size: cover;
       background-position: center;
       overflow: hidden;
@@ -278,15 +266,6 @@ export class BitcoinMinerCard extends LitElement {
       text-overflow: ellipsis;
     }
 
-    .current:first-child {
-      justify-self: start;
-    }
-
-    .current:last-child {
-      justify-self: end;
-      text-align: right;
-    }
-
     .current.current-only {
       grid-column: 2;
       justify-self: end;
@@ -331,7 +310,6 @@ export class BitcoinMinerCard extends LitElement {
     .device-values > .value-temp { top: 67.20%; left: 70.00%; width: 24.00%; height: 6.20%; }
     .device-values > .value-power { top: 74.50%; left: 70.00%; width: 24.00%; height: 6.20%; }
 
-    .accent-cyan { color: var(--bm-edge-alt); }
     .accent-danger {
       color: var(--bm-danger);
       text-shadow: 0 0 10px rgba(255, 139, 61, 0.95);

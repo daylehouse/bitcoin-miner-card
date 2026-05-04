@@ -31,9 +31,9 @@ const ht={attribute:!0,type:String,converter:y,reflect:!1,hasChanged:v},ct=(t=ht
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */function dt(t){return(e,s)=>"object"==typeof s?ct(t,e,s):((t,e,s)=>{const i=e.hasOwnProperty(s);return e.constructor.createProperty(s,t),i?Object.getOwnPropertyDescriptor(e,s):void 0})(t,e,s)}const pt=new URL("./alien-encounters-regular.ttf",import.meta.url).toString(),ut=new URL("./alien-encounters-bold.ttf",import.meta.url).toString();let ft=class extends at{static getStubConfig(){return{}}static getConfigForm(){return{schema:[{name:"title_entity",selector:{entity:{}}},{name:"miner_name_entity",selector:{entity:{}}},{name:"hashrate_entity",selector:{entity:{}}},{name:"temperature_entity",selector:{entity:{}}},{name:"power_entity",selector:{entity:{}}},{name:"model_entity",selector:{entity:{}}}],computeLabel:t=>{switch(t.name){case"title_entity":return"Title Entity";case"miner_name_entity":return"IP Address";case"hashrate_entity":return"Hashrate Entity";case"temperature_entity":return"Temperature Entity";case"power_entity":return"Power Entity";case"model_entity":return"Model Entity";default:return}},computeHelper:t=>{switch(t.name){case"title_entity":return"Sensor used for the title line.";case"miner_name_entity":return"Sensor used for the IP address line.";default:return}}}}setConfig(t){if(!t)throw new Error("Invalid configuration for bitcoin-miner-card");this.config={overheat_threshold:85,...t}}getCardSize(){return 3}getGridOptions(){return{rows:4,columns:6,min_rows:3,min_columns:6}}render(){if(!this.config)return V;const t=this.readState(this.config.title_entity,"").value||"",e=this.readState(this.config.hashrate_entity,"MH/s"),s=this.readState(this.config.temperature_entity,"°C"),i=this.readState(this.config.power_entity,"W"),r=this.readState(this.config.model_entity,""),n=this.readState(this.config.miner_name_entity,"").value,o=this.config.overheat_threshold??85,a=this.parseNumericState(s.value),l=null!==a&&a>=o,h=this.resolveAssetUrl(this.config.base_image,"background-v2.png");return B`
+ */function dt(t){return(e,s)=>"object"==typeof s?ct(t,e,s):((t,e,s)=>{const i=e.hasOwnProperty(s);return e.constructor.createProperty(s,t),i?Object.getOwnPropertyDescriptor(e,s):void 0})(t,e,s)}const pt=new URL("./alien-encounters-regular.ttf",import.meta.url).toString(),ut=new URL("./alien-encounters-bold.ttf",import.meta.url).toString(),ft=new URL("./background-v2.png",import.meta.url).toString();let mt=class extends at{static getStubConfig(){return{}}static getConfigForm(){return{schema:[{name:"title_entity",selector:{entity:{}}},{name:"miner_name_entity",selector:{entity:{}}},{name:"hashrate_entity",selector:{entity:{}}},{name:"temperature_entity",selector:{entity:{}}},{name:"power_entity",selector:{entity:{}}},{name:"model_entity",selector:{entity:{}}}],computeLabel:t=>{switch(t.name){case"title_entity":return"Title Entity";case"miner_name_entity":return"IP Address";case"hashrate_entity":return"Hashrate Entity";case"temperature_entity":return"Temperature Entity";case"power_entity":return"Power Entity";case"model_entity":return"Model Entity";default:return}},computeHelper:t=>{switch(t.name){case"title_entity":return"Sensor used for the title line.";case"miner_name_entity":return"Sensor used for the IP address line.";default:return}}}}setConfig(t){if(!t)throw new Error("Invalid configuration for bitcoin-miner-card");this.config={overheat_threshold:85,...t}}getCardSize(){return 3}getGridOptions(){return{rows:4,columns:6,min_rows:3,min_columns:6}}render(){if(!this.config)return V;const t=this.readState(this.config.title_entity,"").value||"",e=this.readState(this.config.hashrate_entity,"MH/s"),s=this.readState(this.config.temperature_entity,"°C"),i=this.readState(this.config.power_entity,"W"),r=this.readState(this.config.model_entity,""),n=this.readState(this.config.miner_name_entity,"").value,o=this.config.overheat_threshold??85,a=this.parseNumericState(s.value),l=null!==a&&a>=o;return B`
       <ha-card>
-        <section class="stage" style=${`--bm-base-image: url('${h}')`}>
+        <section class="stage" style=${`background-image: url('${ft}')`}>
           <div class="title-value">${t}</div>
           <div class="current-row">
             <span class="current current-only">${this.formatState(e)}</span>
@@ -47,7 +47,7 @@ const ht={attribute:!0,type:String,converter:y,reflect:!1,hasChanged:v},ct=(t=ht
           </div>
         </section>
       </ha-card>
-    `}formatState(t){const e=t.value.trim();if(!e)return"";const s=t.unit.trim();return s?`${e} ${s}`:e}parseNumericState(t){const e=t.match(/-?\d+(\.\d+)?/);if(!e)return null;const s=Number(e[0]);return Number.isFinite(s)?s:null}resolveAssetUrl(t,e){return t&&t.trim().length>0?t:new URL(`./${e}`,import.meta.url).toString()}readState(t,e=""){if(!this.hass||!t)return{value:"",unit:""};const s=this.hass.states[t];if(!s)return{value:"",unit:""};const i=s.attributes?.unit_of_measurement??e;return{value:s.state,unit:i}}};ft.styles=((t,...e)=>{const s=1===t.length?t[0]:e.reduce((e,s,i)=>e+(t=>{if(!0===t._$cssResult$)return t.cssText;if("number"==typeof t)return t;throw Error("Value passed to 'css' function must be a 'css' function result: "+t+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(s)+t[i+1],t[0]);return new n(s,t,i)})`
+    `}formatState(t){const e=t.value.trim();if(!e)return"";const s=t.unit.trim();return s?`${e} ${s}`:e}parseNumericState(t){const e=t.match(/-?\d+(\.\d+)?/);if(!e)return null;const s=Number(e[0]);return Number.isFinite(s)?s:null}readState(t,e=""){if(!this.hass||!t)return{value:"",unit:""};const s=this.hass.states[t];if(!s)return{value:"",unit:""};const i=s.attributes?.unit_of_measurement??e;return{value:s.state,unit:i}}};mt.styles=((t,...e)=>{const s=1===t.length?t[0]:e.reduce((e,s,i)=>e+(t=>{if(!0===t._$cssResult$)return t.cssText;if("number"==typeof t)return t;throw Error("Value passed to 'css' function must be a 'css' function result: "+t+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(s)+t[i+1],t[0]);return new n(s,t,i)})`
     @font-face {
       font-family: "Alien Encounters";
       src: url(${o(pt)}) format("truetype");
@@ -65,11 +65,8 @@ const ht={attribute:!0,type:String,converter:y,reflect:!1,hasChanged:v},ct=(t=ht
     }
 
     :host {
-      --bm-edge: #ff43ba;
-      --bm-edge-alt: #42d3ff;
       --bm-danger: #ff8b3d;
       --bm-text: #ffe9fa;
-      --bm-base-image: none;
       display: block;
     }
 
@@ -86,7 +83,6 @@ const ht={attribute:!0,type:String,converter:y,reflect:!1,hasChanged:v},ct=(t=ht
       position: relative;
       width: 100%;
       aspect-ratio: 3 / 2;
-      background-image: var(--bm-base-image);
       background-size: cover;
       background-position: center;
       overflow: hidden;
@@ -133,15 +129,6 @@ const ht={attribute:!0,type:String,converter:y,reflect:!1,hasChanged:v},ct=(t=ht
       text-overflow: ellipsis;
     }
 
-    .current:first-child {
-      justify-self: start;
-    }
-
-    .current:last-child {
-      justify-self: end;
-      text-align: right;
-    }
-
     .current.current-only {
       grid-column: 2;
       justify-self: end;
@@ -186,7 +173,6 @@ const ht={attribute:!0,type:String,converter:y,reflect:!1,hasChanged:v},ct=(t=ht
     .device-values > .value-temp { top: 67.20%; left: 70.00%; width: 24.00%; height: 6.20%; }
     .device-values > .value-power { top: 74.50%; left: 70.00%; width: 24.00%; height: 6.20%; }
 
-    .accent-cyan { color: var(--bm-edge-alt); }
     .accent-danger {
       color: var(--bm-danger);
       text-shadow: 0 0 10px rgba(255, 139, 61, 0.95);
@@ -208,5 +194,5 @@ const ht={attribute:!0,type:String,converter:y,reflect:!1,hasChanged:v},ct=(t=ht
       }
       .stat-value { font-size: clamp(0.38rem, 1.45cqw, 0.62rem); }
     }
-  `,t([dt({attribute:!1})],ft.prototype,"hass",void 0),t([dt({attribute:!1})],ft.prototype,"config",void 0),ft=t([(t=>(e,s)=>{void 0!==s?s.addInitializer(()=>{customElements.define(t,e)}):customElements.define(t,e)})("bitcoin-miner-card")],ft),window.customCards=window.customCards||[],window.customCards.push({type:"bitcoin-miner-card",name:"Bitcoin Miner Card",preview:!1,description:"A custom card for monitoring Bitcoin miner stats.",documentationURL:"https://developers.home-assistant.io/docs/frontend/custom-ui/custom-card/"});export{ft as BitcoinMinerCard};
+  `,t([dt({attribute:!1})],mt.prototype,"hass",void 0),t([dt({attribute:!1})],mt.prototype,"config",void 0),mt=t([(t=>(e,s)=>{void 0!==s?s.addInitializer(()=>{customElements.define(t,e)}):customElements.define(t,e)})("bitcoin-miner-card")],mt),window.customCards=window.customCards||[],window.customCards.push({type:"bitcoin-miner-card",name:"Bitcoin Miner Card",preview:!1,description:"A custom card for monitoring Bitcoin miner stats.",documentationURL:"https://developers.home-assistant.io/docs/frontend/custom-ui/custom-card/"});export{mt as BitcoinMinerCard};
 //# sourceMappingURL=bitcoin-miner-card.js.map

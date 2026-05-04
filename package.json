@@ -13,6 +13,7 @@
   "scripts": {
     "build": "rollup -c && npm run copy-assets",
     "copy-assets": "cp -f background.png dist/background-v2.png",
+    "preview": "npm run build && npx --yes serve -l 4173 .",
     "watch": "rollup -c -w",
     "lint": "tsc --noEmit"
   },

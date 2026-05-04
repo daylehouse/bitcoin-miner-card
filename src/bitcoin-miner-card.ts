@@ -166,7 +166,7 @@ export class BitcoinMinerCard extends LitElement {
     const stageStyle = `--bm-base-image: url('${baseImage}')`;
 
     return html`
-      <ha-card>
+      <ha-card .header=${this.config.title}>
         <section class="stage" style=${stageStyle}>
           <div class="current-row">
             <span class="current cyan">${this.formatState(hashrate)}</span>
@@ -174,10 +174,10 @@ export class BitcoinMinerCard extends LitElement {
           </div>
 
           <div class="device-values">
-            <span class="stat-value">${minerName}</span>
-            <span class="stat-value">${model.value}</span>
-            <span class=${temperatureClass}>${this.formatState(temperature)}</span>
-            <span class="stat-value accent-cyan">${this.formatState(power)}</span>
+            <span class="stat-value value-fire">${minerName}</span>
+            <span class="stat-value value-gamma">${model.value}</span>
+            <span class=${`${temperatureClass} value-temp`}>${this.formatState(temperature)}</span>
+            <span class="stat-value accent-cyan value-power">${this.formatState(power)}</span>
           </div>
         </section>
       </ha-card>
@@ -251,9 +251,9 @@ export class BitcoinMinerCard extends LitElement {
 
     .current-row {
       position: absolute;
-      left: 12.2%;
-      top: 82.1%;
-      width: 44.9%;
+      left: 10.65%;
+      top: 67.65%;
+      width: 45.10%;
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
       gap: 7%;
@@ -282,20 +282,16 @@ export class BitcoinMinerCard extends LitElement {
 
     .device-values {
       position: absolute;
-      left: 70.25%;
-      top: 45.8%;
-      width: 20.1%;
-      height: 23%;
-      display: grid;
-      grid-template-rows: repeat(4, 1fr);
-      row-gap: 1.4%;
+      left: 11.11%;
+      top: 14.35%;
+      width: 43.70%;
+      height: 8.00%;
     }
 
     .stat-value {
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      text-align: left;
+      position: absolute;
+      transform: translate(-100%, -50%);
+      text-align: right;
       font-size: clamp(0.4rem, 0.86vw, 0.74rem);
       font-weight: 700;
       line-height: 1.05;
@@ -305,7 +301,7 @@ export class BitcoinMinerCard extends LitElement {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      padding-left: 1.6%;
+      max-width: 92%;
     }
 
     .stat-value:nth-child(1),
@@ -318,10 +314,10 @@ export class BitcoinMinerCard extends LitElement {
       font-size: clamp(0.41rem, 0.88vw, 0.76rem);
     }
 
-    .stat-value:nth-child(1) { transform: translateY(-0.1%); }
-    .stat-value:nth-child(2) { transform: translateY(0.4%); }
-    .stat-value:nth-child(3) { transform: translateY(1%); }
-    .stat-value:nth-child(4) { transform: translateY(1.9%); }
+    .device-values > .value-fire { top: 47.51%; left: 70.00%; width: 18.40%; height: 6.00%; }
+    .device-values > .value-gamma { top: 55.03%; left: 70.00%; width: 17.80%; height: 6.00%; }
+    .device-values > .value-temp { top: 62.84%; left: 70.00%; width: 17.50%; height: 6.00%; }
+    .device-values > .value-power { top: 70.35%; left: 70.00%; width: 17.60%; height: 6.00%; }
 
     .accent-cyan { color: var(--bm-edge-alt); }
     .accent-danger {
@@ -335,13 +331,8 @@ export class BitcoinMinerCard extends LitElement {
       50% { opacity: 0.62; }
     }
 
-    @media (max-width: 1100px) {
-      .device-values { left: 70.15%; top: 45.7%; width: 20.4%; }
-    }
-
     @media (max-width: 540px) {
-      .current-row { top: 82.3%; font-size: clamp(0.42rem, 1.2vw, 0.68rem); }
-      .device-values { left: 70.05%; top: 45.7%; width: 20.6%; height: 23.1%; }
+      .current-row { top: 83.1%; font-size: clamp(0.42rem, 1.2vw, 0.68rem); }
       .stat-value { font-size: clamp(0.35rem, 1.05vw, 0.54rem); }
       .stat-value:nth-child(1),
       .stat-value:nth-child(2) { font-size: clamp(0.33rem, 0.98vw, 0.5rem); }

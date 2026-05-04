@@ -57,6 +57,7 @@ show_overheat: true
 - Install dependencies: `npm install`
 - Build: `npm run build`
 - Watch mode: `npm run watch`
+- Local preview (no Home Assistant publish required): `npm run preview`, then open `http://localhost:4173/dev/preview.html`
 
 ## HACS Publishing Notes
 

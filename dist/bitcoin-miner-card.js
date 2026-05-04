@@ -136,8 +136,8 @@ const ht={attribute:!0,type:String,converter:g,reflect:!1,hasChanged:v},lt=(t=ht
 
     .stat-value {
       position: absolute;
-      transform: translate(-100%, -50%);
-      text-align: right;
+      transform: translate(0, -50%);
+      text-align: left;
       font-size: clamp(0.4rem, 0.86vw, 0.74rem);
       font-weight: 700;
       line-height: 1.05;
@@ -160,10 +160,10 @@ const ht={attribute:!0,type:String,converter:g,reflect:!1,hasChanged:v},lt=(t=ht
       font-size: clamp(0.41rem, 0.88vw, 0.76rem);
     }
 
-    .device-values > .value-fire { top: 46.51%; left: 75.00%; width: 18.40%; height: 6.00%; }
-    .device-values > .value-gamma { top: 55.03%; left: 75.00%; width: 17.80%; height: 6.00%; }
-    .device-values > .value-temp { top: 62.84%; left: 75.00%; width: 17.50%; height: 6.00%; }
-    .device-values > .value-power { top: 70.35%; left: 75.00%; width: 17.60%; height: 6.00%; }
+    .device-values > .value-fire { top: 55.40%; left: 67.80%; width: 24.00%; height: 6.20%; }
+    .device-values > .value-gamma { top: 62.50%; left: 67.80%; width: 24.00%; height: 6.20%; }
+    .device-values > .value-temp { top: 69.70%; left: 67.80%; width: 24.00%; height: 6.20%; }
+    .device-values > .value-power { top: 76.90%; left: 67.80%; width: 24.00%; height: 6.20%; }
 
     .accent-cyan { color: var(--bm-edge-alt); }
     .accent-danger {

@@ -10,9 +10,7 @@ interface HomeAssistant {
 
 interface BitcoinMinerCardConfig {
   type?: string;
-  title?: string;
   title_entity?: string;
-  miner_name?: string;
   miner_name_entity?: string;
   hashrate_entity?: string;
   temperature_entity?: string;
@@ -44,55 +42,26 @@ export class BitcoinMinerCard extends LitElement {
   @property({ attribute: false }) public config?: BitcoinMinerCardConfig;
 
   public static getStubConfig(): BitcoinMinerCardConfig {
-    return {
-      title: "Crypto Miner Stats",
-      miner_name: "Rig-01"
-    };
+    return {};
   }
 
   public static getConfigForm(): ConfigForm {
     return {
       schema: [
-        { name: "title", selector: { text: {} } },
         { name: "title_entity", selector: { entity: {} } },
-        { name: "miner_name", selector: { text: {} } },
         { name: "miner_name_entity", selector: { entity: {} } },
         { name: "hashrate_entity", selector: { entity: {} } },
         { name: "temperature_entity", selector: { entity: {} } },
         { name: "power_entity", selector: { entity: {} } },
         { name: "model_entity", selector: { entity: {} } },
-        {
-          type: "grid",
-          name: "",
-          flatten: true,
-          column_min_width: "180px",
-          schema: [
-            {
-              name: "overheat_threshold",
-              selector: {
-                number: {
-                  min: 0,
-                  max: 140,
-                  step: 1,
-                  mode: "box",
-                  unit_of_measurement: "°C"
-                }
-              }
-            },
-            { name: "base_image", selector: { text: {} } }
-          ]
-        }
+        { name: "base_image", selector: { text: {} } }
       ],
       computeLabel: (schema) => {
         switch (schema.name) {
-          case "title":
-            return "Card Title";
           case "title_entity":
             return "Title Entity";
-          case "miner_name":
-            return "Miner Name";
           case "miner_name_entity":
-            return "Miner Name Entity";
+            return "IP Address";
           case "hashrate_entity":
             return "Hashrate Entity";
           case "temperature_entity":
@@ -101,8 +70,6 @@ export class BitcoinMinerCard extends LitElement {
             return "Power Entity";
           case "model_entity":
             return "Model Entity";
-          case "overheat_threshold":
-            return "Overheat Threshold";
           case "base_image":
             return "Base Image URL";
           default:
@@ -112,9 +79,9 @@ export class BitcoinMinerCard extends LitElement {
       computeHelper: (schema) => {
         switch (schema.name) {
           case "title_entity":
-            return "Optional sensor. Its state overrides Card Title text.";
+            return "Sensor used for the title line.";
           case "miner_name_entity":
-            return "Optional sensor. Its state overrides Miner Name text.";
+            return "Sensor used for the IP address line.";
           case "base_image":
             return "Optional path/URL. Defaults to bundled background-v2.png.";
           default:
@@ -130,8 +97,6 @@ export class BitcoinMinerCard extends LitElement {
     }
 
     this.config = {
-      title: "Crypto Miner Stats",
-      miner_name: "Rig-01",
       overheat_threshold: 85,
       ...config
     };
@@ -161,7 +126,7 @@ export class BitcoinMinerCard extends LitElement {
     }
 
     const titleState = this.readState(this.config.title_entity, "");
-    const title = titleState.value || this.config.title || "";
+    const title = titleState.value || "";
     const hashrate = this.readState(this.config.hashrate_entity, "MH/s");
     const temperature = this.readState(this.config.temperature_entity, "°C");
     const power = this.readState(this.config.power_entity, "W");
@@ -186,10 +151,10 @@ export class BitcoinMinerCard extends LitElement {
           </div>
 
           <div class="device-values">
-            <span class="stat-value value-fire"><span class="label label-cyan">Miner</span><span class="colon">:</span><span class="val val-pink">${minerName}</span></span>
-            <span class="stat-value value-gamma"><span class="label label-lavender">Model</span><span class="colon">:</span><span class="val val-pink">${model.value}</span></span>
-            <span class="stat-value value-temp"><span class="label label-lavender">Temp</span><span class="colon">:</span><span class="val ${isOverheat ? 'val-danger' : 'val-amber'}">${this.formatState(temperature)}</span></span>
-            <span class="stat-value value-power"><span class="label label-cyan">Power</span><span class="colon">:</span><span class="val val-cyan">${this.formatState(power)}</span></span>
+            <span class="stat-value value-fire val-white">${minerName}</span>
+            <span class="stat-value value-gamma val-pink">${model.value}</span>
+            <span class="stat-value value-temp ${isOverheat ? 'val-danger' : 'val-amber'}">${this.formatState(temperature)}</span>
+            <span class="stat-value value-power val-cyan">${this.formatState(power)}</span>
           </div>
         </section>
       </ha-card>
@@ -282,16 +247,7 @@ export class BitcoinMinerCard extends LitElement {
       left: 12.7%;
       top: 16.0%;
       width: 47%;
-      color: #ff77de;
-      background: linear-gradient(
-        90deg,
-        #ff4fd2 0%,
-        #ff79df 45%,
-        #ffb7f2 100%
-      );
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
+      color: #ffffff;
       font-family: "Alien Encounters", sans-serif;
       font-size: clamp(0.8rem, 2.02vw, 1.72rem);
       font-weight: 700;
@@ -301,7 +257,7 @@ export class BitcoinMinerCard extends LitElement {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      text-shadow: 0 0 14px rgba(255, 80, 210, 0.82), 0 0 4px rgba(255, 80, 210, 0.95);
+      text-shadow: none;
     }
 
     .current-row {
@@ -320,8 +276,9 @@ export class BitcoinMinerCard extends LitElement {
     }
 
     .current {
+      color: #ffffff;
       white-space: nowrap;
-      text-shadow: 0 0 8px currentColor;
+      text-shadow: none;
       overflow: hidden;
       text-overflow: ellipsis;
     }
@@ -352,63 +309,23 @@ export class BitcoinMinerCard extends LitElement {
       font-weight: 700;
       line-height: 1.02;
       font-family: "Alien Encounters", sans-serif;
-      text-shadow: 0 0 6px rgba(255, 236, 248, 0.25);
+      text-shadow: none;
       color: var(--bm-text);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       max-width: 92%;
     }
+    .val-cyan   { color: #9ffbff; text-shadow: none; }
+    .val-white  { color: #ffffff; text-shadow: none; }
+    .val-pink   { color: #ff86da; text-shadow: none; }
+    .val-amber  { color: #ffd86f; text-shadow: none; }
+    .val-danger { color: var(--bm-danger); text-shadow: none; animation: tempAlert 0.9s ease-in-out infinite; }
 
-    .stat-value .label {
-      font-weight: 700;
-      letter-spacing: 0.03em;
-      text-transform: none;
-    }
-
-    .label-cyan { color: rgba(194, 242, 255, 0.98); }
-    .label-lavender { color: rgba(213, 185, 255, 0.98); }
-
-    .stat-value .colon {
-      display: inline-block;
-      margin-left: 0.06em;
-      margin-right: 0.52em;
-      font-weight: 700;
-    }
-
-    .value-fire .label,
-    .value-fire .colon,
-    .value-power .label,
-    .value-power .colon {
-      color: rgba(194, 242, 255, 0.98);
-      text-shadow: 0 0 8px rgba(120, 230, 255, 0.45);
-    }
-
-    .value-gamma .label,
-    .value-gamma .colon {
-      color: rgba(213, 185, 255, 0.98);
-      text-shadow: 0 0 8px rgba(213, 185, 255, 0.42);
-    }
-
-    .value-temp .label,
-    .value-temp .colon {
-      color: rgba(213, 185, 255, 0.98);
-      text-shadow: 0 0 8px rgba(213, 185, 255, 0.42);
-    }
-
-    .val {
-      font-weight: 700;
-      letter-spacing: 0.02em;
-    }
-    .val-cyan   { color: #9ffbff; text-shadow: 0 0 8px rgba(138, 246, 255, 0.72); }
-    .val-pink   { color: #ff86da; text-shadow: 0 0 9px rgba(255, 134, 218, 0.75); }
-    .val-amber  { color: #ffd86f; text-shadow: 0 0 10px rgba(255, 173, 76, 0.78); }
-    .val-danger { color: var(--bm-danger); text-shadow: 0 0 10px rgba(255, 139, 61, 0.95); animation: tempAlert 0.9s ease-in-out infinite; }
-
-    .device-values > .value-fire { top: 54.00%; left: 70.00%; width: 16.00%; height: 6.20%; }
-    .device-values > .value-gamma { top: 61.00%; left: 70.00%; width: 16.00%; height: 6.20%; }
-    .device-values > .value-temp { top: 68.50%; left: 70.00%; width: 16.00%; height: 6.20%; }
-    .device-values > .value-power { top: 75.50%; left: 70.00%; width: 16.00%; height: 6.20%; }
+    .device-values > .value-fire { top: 52.90%; left: 70.00%; width: 24.00%; height: 6.20%; }
+    .device-values > .value-gamma { top: 60.85%; left: 70.00%; width: 24.00%; height: 6.20%; }
+    .device-values > .value-temp { top: 68.20%; left: 70.00%; width: 24.00%; height: 6.20%; }
+    .device-values > .value-power { top: 75.50%; left: 70.00%; width: 24.00%; height: 6.20%; }
 
     .accent-cyan { color: var(--bm-edge-alt); }
     .accent-danger {
@@ -426,10 +343,6 @@ export class BitcoinMinerCard extends LitElement {
       .title-value { font-size: clamp(0.54rem, 1.65vw, 0.9rem); }
       .current-row { top: 83.1%; font-size: clamp(0.42rem, 1.2vw, 0.68rem); }
       .stat-value { font-size: clamp(0.35rem, 1.05vw, 0.54rem); }
-      .stat-value:nth-child(1),
-      .stat-value:nth-child(2) { font-size: clamp(0.33rem, 0.98vw, 0.5rem); }
-      .stat-value:nth-child(3),
-      .stat-value:nth-child(4) { font-size: clamp(0.35rem, 1.05vw, 0.54rem); }
     }
   `;
 }

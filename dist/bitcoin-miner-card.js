@@ -69,12 +69,12 @@ const ht={attribute:!0,type:String,converter:v,reflect:!1,hasChanged:g},ct=(t=ht
       --bm-text: #ffe9fa;
       --bm-font-stack: "Bitcoin Miner Alien Local", "Bitcoin Miner Alien", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
       --bm-title-left: 7%;
-      --bm-title-top: 10%;
+      --bm-title-top: 11%;
       --bm-title-width: 47%;
-      --bm-hashrate-left: 27%;
+      --bm-hashrate-left: 5%;
       --bm-hashrate-top: 79.65%;
-      --bm-hashrate-width: 40%;
-      --bm-hashrate-value-width: 65%;
+      --bm-hashrate-width: 69%;
+      --bm-hashrate-value-width: 100%;
       --bm-panel-left: 73%;
       --bm-panel-width: 24%;
       --bm-ip-top: 56.9%;
@@ -116,7 +116,7 @@ const ht={attribute:!0,type:String,converter:v,reflect:!1,hasChanged:g},ct=(t=ht
       top: var(--bm-title-top);
       width: var(--bm-title-width);
       color: #ffffff;
-      font-size: clamp(1.05rem, 3.52cqw, 1.98rem);
+      font-size: clamp(1.28rem, 4.26cqw, 2.4rem);
       font-weight: 700;
       letter-spacing: 0.11em;
       line-height: 1;
@@ -135,15 +135,15 @@ const ht={attribute:!0,type:String,converter:v,reflect:!1,hasChanged:g},ct=(t=ht
       font-size: clamp(0.61rem, 1.98cqw, 1.21rem);
       font-weight: 700;
       letter-spacing: 0.01em;
-      text-align: right;
+      text-align: left;
     }
 
     .hashrate-value {
       color: #ffffff;
       display: block;
       width: var(--bm-hashrate-value-width);
-      text-align: right;
-      font-size: clamp(1.27rem, 3.96cqw, 2.31rem);
+      text-align: left;
+      font-size: clamp(1.82rem, 5.7cqw, 3.32rem);
       transform: translate(0, 0.12em);
       -webkit-text-stroke: 0.7px #15ff00;
       white-space: nowrap;
@@ -196,16 +196,16 @@ const ht={attribute:!0,type:String,converter:v,reflect:!1,hasChanged:g},ct=(t=ht
     }
 
     @media (max-width: 540px) {
-      .title-value { font-size: clamp(0.88rem, 3.08cqw, 1.32rem); }
+      .title-value { font-size: clamp(1.07rem, 3.73cqw, 1.6rem); }
       .hashrate-row {
-        left: auto;
-        right: 31.5%;
+        left: 10%;
+        right: auto;
         top: 83.5%;
-        width: 58%;
+        width: 70%;
         font-size: clamp(0.55rem, 2.09cqw, 0.94rem);
       }
       .hashrate-value {
-        font-size: clamp(1.05rem, 3.3cqw, 1.6rem);
+        font-size: clamp(1.51rem, 4.75cqw, 2.3rem);
         transform: translate(0, 0.12em);
         -webkit-text-stroke: 0.45px #15ff00;
       }

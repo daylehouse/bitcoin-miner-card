@@ -383,7 +383,7 @@ export class BitcoinMinerCard extends LitElement {
     @media (max-width: 540px) {
       .title-value { font-size: clamp(1.07rem, 3.73cqw, 1.6rem); }
       .hashrate-row {
-        left: 10%;
+        left: 15%;
         right: auto;
         top: 83.5%;
         width: 70%;

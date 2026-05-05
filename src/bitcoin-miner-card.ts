@@ -1,4 +1,5 @@
 import { css, html, LitElement, nothing, unsafeCSS } from "lit";
+import Chart from "chart.js/auto";
 import { customElement, property } from "lit/decorators.js";
 import alienRegularRawUrl from "../Alien-Encounters-Regular.ttf";
 import alienBoldRawUrl from "../Alien-Encounters-Bold.ttf";
@@ -81,9 +82,22 @@ export class BitcoinMinerCard extends LitElement {
 
   @property({ attribute: false }) public config?: BitcoinMinerCardConfig;
 
+  private chart: Chart | null = null;
+  private chartData: { labels: string[]; hashrate: number[]; temp: number[] } = { labels: [], hashrate: [], temp: [] };
+  private chartUpdateInterval: number | null = null;
+
   public connectedCallback(): void {
     super.connectedCallback();
     ensureAlienFontsRegistered();
+    this.startChartUpdater();
+  }
+
+  public disconnectedCallback(): void {
+    super.disconnectedCallback();
+    if (this.chartUpdateInterval) {
+      clearInterval(this.chartUpdateInterval);
+      this.chartUpdateInterval = null;
+    }
   }
 
   public static getStubConfig(): BitcoinMinerCardConfig {
@@ -197,6 +211,12 @@ export class BitcoinMinerCard extends LitElement {
     return html`
       <ha-card>
         <section class="stage" style=${stageStyle}>
+          <canvas
+            id="miner-graph"
+            width="368"
+            height="239"
+            style="position:absolute; left:7%; top:20.5%; width:55.3%; height:49.8%; background:transparent; z-index:10; border:none;"
+          ></canvas>
           <div class="title-value">${title}</div>
           <div class="fan-indicator">
             <span class="fan-icon" aria-hidden="true"></span>
@@ -205,7 +225,6 @@ export class BitcoinMinerCard extends LitElement {
           <div class="hashrate-row">
             <span class="hashrate-value">${this.formatState(hashrate)}</span>
           </div>
-
           <div class="device-values">
             <span class="stat-value value-ip val-white">${minerName}</span>
             <span class="stat-value value-model val-pink">${this.normalizeForDisplay(model.value)}</span>
@@ -216,6 +235,108 @@ export class BitcoinMinerCard extends LitElement {
       </ha-card>
     `;
   }
+
+  protected updated() {
+    this.updateChartData();
+    this.renderChart();
+  }
+
+    private startChartUpdater() {
+      if (this.chartUpdateInterval) return;
+      this.chartUpdateInterval = window.setInterval(() => {
+        this.updateChartData();
+        this.renderChart();
+      }, 60000); // 1 minute
+    }
+
+    private updateChartData() {
+      if (!this.config || !this.hass) return;
+      const hashrate = this.readState(this.config.hashrate_entity, "MH/s");
+      const temperature = this.readState(this.config.temperature_entity, "°C");
+      const now = new Date();
+      const timeLabel = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const hrVal = this.parseNumericState(hashrate.value) ?? null;
+      const tempVal = this.parseNumericState(temperature.value) ?? null;
+      // Only push if both values are present
+      if (hrVal !== null && tempVal !== null) {
+        if (this.chartData.labels.length >= 60) {
+          this.chartData.labels.shift();
+          this.chartData.hashrate.shift();
+          this.chartData.temp.shift();
+        }
+        this.chartData.labels.push(timeLabel);
+        this.chartData.hashrate.push(hrVal);
+        this.chartData.temp.push(tempVal);
+      }
+    }
+
+    private renderChart() {
+      const canvas = this.renderRoot?.querySelector('#miner-graph') as HTMLCanvasElement | null;
+      if (!canvas) return;
+      if (!this.chart) {
+        this.chart = new Chart(canvas.getContext('2d')!, {
+          type: 'line',
+          data: {
+            labels: this.chartData.labels,
+            datasets: [
+              {
+                label: 'Hashrate',
+                data: this.chartData.hashrate,
+                borderColor: '#15ff00',
+                backgroundColor: 'rgba(21,255,0,0.12)',
+                yAxisID: 'y',
+                tension: 0.3,
+                pointRadius: 0,
+                borderWidth: 2,
+              },
+              {
+                label: 'Temp',
+                data: this.chartData.temp,
+                borderColor: '#ff8b3d',
+                backgroundColor: 'rgba(255,139,61,0.12)',
+                yAxisID: 'y1',
+                tension: 0.3,
+                pointRadius: 0,
+                borderWidth: 2,
+              }
+            ]
+          },
+          options: {
+            responsive: false,
+            animation: false,
+            plugins: {
+              legend: { display: true, labels: { color: '#ffe9fa', font: { size: 16, family: 'Bitcoin Miner Alien Local' } } },
+              tooltip: { enabled: true }
+            },
+            scales: {
+              x: {
+                ticks: { color: '#ffe9fa', font: { size: 18, family: 'Bitcoin Miner Alien Local' }, maxTicksLimit: 3 },
+                grid: { color: 'rgba(255,255,255,0.08)' }
+              },
+              y: {
+                type: 'linear',
+                display: true,
+                position: 'left',
+                ticks: { color: '#15ff00', font: { size: 18, family: 'Bitcoin Miner Alien Local' }, maxTicksLimit: 3 },
+                grid: { color: 'rgba(21,255,0,0.08)' }
+              },
+              y1: {
+                type: 'linear',
+                display: true,
+                position: 'right',
+                ticks: { color: '#ff8b3d', font: { size: 18, family: 'Bitcoin Miner Alien Local' }, maxTicksLimit: 3 },
+                grid: { drawOnChartArea: false }
+              }
+            }
+          }
+        });
+      } else {
+        this.chart.data.labels = this.chartData.labels;
+        this.chart.data.datasets[0].data = this.chartData.hashrate;
+        this.chart.data.datasets[1].data = this.chartData.temp;
+        this.chart.update();
+      }
+    }
 
   private normalizeForDisplay(value: string): string {
     return value.trim().toUpperCase();

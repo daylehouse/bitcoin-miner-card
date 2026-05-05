@@ -53,6 +53,8 @@ interface BitcoinMinerCardConfig {
   miner_name_entity?: string;
   hashrate_entity?: string;
   temperature_entity?: string;
+  overheat_entity?: string;
+  fan_entity?: string;
   power_entity?: string;
   model_entity?: string;
   overheat_threshold?: number;
@@ -95,6 +97,8 @@ export class BitcoinMinerCard extends LitElement {
         { name: "miner_name_entity", selector: { entity: {} } },
         { name: "hashrate_entity", selector: { entity: {} } },
         { name: "temperature_entity", selector: { entity: {} } },
+        { name: "overheat_entity", selector: { entity: {} } },
+        { name: "fan_entity", selector: { entity: {} } },
         { name: "power_entity", selector: { entity: {} } },
         { name: "model_entity", selector: { entity: {} } }
       ],
@@ -108,6 +112,10 @@ export class BitcoinMinerCard extends LitElement {
             return "Hashrate Entity";
           case "temperature_entity":
             return "Temperature Entity";
+          case "overheat_entity":
+            return "Overheat Entity (0/1)";
+          case "fan_entity":
+            return "Fan Entity";
           case "power_entity":
             return "Power Entity";
           case "model_entity":
@@ -122,6 +130,10 @@ export class BitcoinMinerCard extends LitElement {
             return "Sensor used for the title line.";
           case "miner_name_entity":
             return "Sensor used for the IP address line.";
+          case "overheat_entity":
+            return "Binary overheat sensor: 0 = normal, 1 = overheat.";
+          case "fan_entity":
+            return "Fan speed sensor shown as percent.";
           default:
             return undefined;
         }
@@ -173,16 +185,23 @@ export class BitcoinMinerCard extends LitElement {
     const model = this.readState(this.config.model_entity, "");
     const minerNameState = this.readState(this.config.miner_name_entity, "");
     const minerName = this.normalizeForDisplay(minerNameState.value);
+    const overheatState = this.readState(this.config.overheat_entity, "");
+    const fan = this.readState(this.config.fan_entity, "%");
 
     const threshold = this.config.overheat_threshold ?? 85;
     const numericTemp = this.parseNumericState(temperature.value);
-    const isOverheat = numericTemp !== null && numericTemp >= threshold;
+    const overheatFromEntity = this.parseOverheatState(overheatState.value);
+    const isOverheat = overheatFromEntity ?? (numericTemp !== null && numericTemp >= threshold);
     const stageStyle = `background-image: url('${backgroundImageUrl}')`;
 
     return html`
       <ha-card>
         <section class="stage" style=${stageStyle}>
           <div class="title-value">${title}</div>
+          <div class="fan-indicator">
+            <span class="fan-icon" aria-hidden="true"></span>
+            <span class="fan-value">${this.formatState(fan)}</span>
+          </div>
           <div class="hashrate-row">
             <span class="hashrate-value">${this.formatState(hashrate)}</span>
           </div>
@@ -218,6 +237,14 @@ export class BitcoinMinerCard extends LitElement {
     }
     const numeric = Number(match[0]);
     return Number.isFinite(numeric) ? numeric : null;
+  }
+
+  private parseOverheatState(state: string): boolean | null {
+    const numeric = this.parseNumericState(state);
+    if (numeric === null) {
+      return null;
+    }
+    return numeric >= 1;
   }
 
   private readState(entityId?: string, defaultUnit = ""): { value: string; unit: string } {
@@ -256,8 +283,10 @@ export class BitcoinMinerCard extends LitElement {
       --bm-title-left: 7%;
       --bm-title-top: 11%;
       --bm-title-width: 47%;
-      --bm-hashrate-left: 5%;
-      --bm-hashrate-top: 79.65%;
+      --bm-fan-top: 11.5%;
+      --bm-fan-left: 86%;
+      --bm-hashrate-left: 10%;
+      --bm-hashrate-top: 75.65%;
       --bm-hashrate-width: 69%;
       --bm-hashrate-value-width: 100%;
       --bm-panel-left: 73%;
@@ -310,6 +339,49 @@ export class BitcoinMinerCard extends LitElement {
       overflow: hidden;
       text-overflow: ellipsis;
       text-shadow: none;
+    }
+
+    .fan-indicator {
+      position: absolute;
+      left: var(--bm-fan-left);
+      top: var(--bm-fan-top);
+      transform: translate(-50%, -50%);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.32rem;
+      color: #9ffbff;
+      pointer-events: none;
+      max-width: 24%;
+    }
+
+    .fan-icon {
+      width: clamp(1.13rem, 3.75cqw, 2.11rem);
+      height: clamp(1.13rem, 3.75cqw, 2.11rem);
+      border-radius: 50%;
+      border: 2px solid #fffbfa;
+      background: conic-gradient(
+        from 0deg,
+        transparent 0deg 28deg,
+        #9ffbff 28deg 72deg,
+        transparent 72deg 148deg,
+        #9ffbff 148deg 192deg,
+        transparent 192deg 268deg,
+        #9ffbff 268deg 312deg,
+        transparent 312deg 360deg
+      );
+      animation: fanSpin 1s linear infinite;
+      flex: 0 0 auto;
+      margin-top: -0.15rem;
+    }
+
+    .fan-value {
+      font-size: clamp(1.22rem, 3.08cqw, 1.79rem);
+      font-weight: 700;
+      line-height: 1;
+      white-space: nowrap;
+      text-shadow: none;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .hashrate-row {
@@ -378,6 +450,11 @@ export class BitcoinMinerCard extends LitElement {
     @keyframes tempAlert {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.62; }
+    }
+
+    @keyframes fanSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
     }
 
     @media (max-width: 540px) {

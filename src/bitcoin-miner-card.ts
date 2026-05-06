@@ -215,7 +215,7 @@ export class BitcoinMinerCard extends LitElement {
             id="miner-graph"
             width="368"
             height="239"
-            style="position:absolute; left:7%; top:20.5%; width:55.3%; height:49.8%; background:transparent; z-index:10; border:none;"
+            style="position:absolute; left:5.75%; top:20.5%; width:54.5%; height:46.8%; background:transparent; z-index:10; border:none;"
           ></canvas>
           <div class="title-value">${title}</div>
           <div class="fan-indicator">
@@ -292,8 +292,8 @@ export class BitcoinMinerCard extends LitElement {
               {
                 label: 'Temp',
                 data: this.chartData.temp,
-                borderColor: '#ff8b3d',
-                backgroundColor: 'rgba(255,139,61,0.12)',
+                borderColor: '#ff2fd6',
+                backgroundColor: 'rgba(255,47,214,0.12)',
                 yAxisID: 'y1',
                 tension: 0.3,
                 pointRadius: 0,
@@ -305,26 +305,51 @@ export class BitcoinMinerCard extends LitElement {
             responsive: false,
             animation: false,
             plugins: {
-              legend: { display: true, labels: { color: '#ffe9fa', font: { size: 16, family: 'Bitcoin Miner Alien Local' } } },
+              legend: {
+                display: true,
+                labels: {
+                  color: '#ffe9fa',
+                  font: { size: 16, family: 'Bitcoin Miner Alien Local' },
+                  boxWidth: 18,
+                  boxHeight: 6,
+                  borderRadius: 1,
+                  usePointStyle: false
+                }
+              },
               tooltip: { enabled: true }
             },
             scales: {
               x: {
-                ticks: { color: '#ffe9fa', font: { size: 18, family: 'Bitcoin Miner Alien Local' }, maxTicksLimit: 3 },
+                ticks: {
+                  color: '#fff',
+                  font: { size: 18, family: 'Bitcoin Miner Alien Local' },
+                  maxTicksLimit: 3,
+                  display: false // Hide time labels
+                },
                 grid: { color: 'rgba(255,255,255,0.08)' }
               },
               y: {
                 type: 'linear',
                 display: true,
                 position: 'left',
-                ticks: { color: '#15ff00', font: { size: 18, family: 'Bitcoin Miner Alien Local' }, maxTicksLimit: 3 },
+                ticks: {
+                  color: '#fff',
+                  font: { size: 18, family: 'Bitcoin Miner Alien Local' },
+                  maxTicksLimit: 3,
+                  callback: (tickValue: string | number) => Math.round(Number(tickValue)).toString()
+                },
                 grid: { color: 'rgba(21,255,0,0.08)' }
               },
               y1: {
                 type: 'linear',
                 display: true,
                 position: 'right',
-                ticks: { color: '#ff8b3d', font: { size: 18, family: 'Bitcoin Miner Alien Local' }, maxTicksLimit: 3 },
+                ticks: {
+                  color: '#fff',
+                  font: { size: 18, family: 'Bitcoin Miner Alien Local' },
+                  maxTicksLimit: 3,
+                  callback: (tickValue: string | number) => Math.round(Number(tickValue)).toString()
+                },
                 grid: { drawOnChartArea: false }
               }
             }

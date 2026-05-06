@@ -368,11 +368,18 @@ export class BitcoinMinerCard extends LitElement {
   }
 
   private formatState(state: { value: string; unit: string }): string {
-    const value = this.normalizeForDisplay(state.value);
+    let value = this.normalizeForDisplay(state.value);
     if (!value) {
       return "";
     }
     const unit = this.normalizeForDisplay(state.unit);
+    // If unit is %, display as integer
+    if (unit === "%") {
+      const num = Number(value);
+      if (!isNaN(num)) {
+        value = Math.round(num).toString();
+      }
+    }
     return unit ? `${value} ${unit}` : value;
   }
 
@@ -494,15 +501,15 @@ export class BitcoinMinerCard extends LitElement {
       transform: translate(-50%, -50%);
       display: inline-flex;
       align-items: center;
-      gap: 0.32rem;
+      gap: 0.5rem;
       color: #9ffbff;
       pointer-events: none;
       max-width: 24%;
     }
 
     .fan-icon {
-      width: clamp(1.07rem, 3.56cqw, 2rem);
-      height: clamp(1.07rem, 3.56cqw, 2rem);
+      width: clamp(0.99rem, 3.28cqw, 1.84rem);
+      height: clamp(0.99rem, 3.28cqw, 1.84rem);
       border-radius: 50%;
       border: 2px solid #fffbfa;
       background: conic-gradient(

@@ -297,38 +297,21 @@ export class BitcoinMinerCard extends LitElement {
     `;
   }
 
+
   protected updated() {
-    this.updateChartData();
     this.renderChart();
   }
+
 
     private startChartUpdater() {
       if (this.chartUpdateInterval) return;
       this.chartUpdateInterval = window.setInterval(() => {
         this.fetchAndPopulateHistory();
-      }, 300000); // every 5 minutes
+      }, 60000); // every 1 minute
     }
 
-    private updateChartData() {
-      if (!this.config || !this.hass) return;
-      const hashrate = this.readState(this.config.hashrate_entity, "MH/s");
-      const temperature = this.readState(this.config.temperature_entity, "°C");
-      const now = new Date();
-      const timeLabel = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const hrVal = this.parseNumericState(hashrate.value) ?? null;
-      const tempVal = this.parseNumericState(temperature.value) ?? null;
-      // Only push if both values are present
-      if (hrVal !== null && tempVal !== null) {
-        if (this.chartData.labels.length >= 60) {
-          this.chartData.labels.shift();
-          this.chartData.hashrate.shift();
-          this.chartData.temp.shift();
-        }
-        this.chartData.labels.push(timeLabel);
-        this.chartData.hashrate.push(hrVal);
-        this.chartData.temp.push(tempVal);
-      }
-    }
+
+    // Removed updateChartData: live fallback is no longer used; only history is shown
 
     private renderChart() {
       const canvas = this.renderRoot?.querySelector('#miner-graph') as HTMLCanvasElement | null;
@@ -410,86 +393,99 @@ export class BitcoinMinerCard extends LitElement {
                   maxTicksLimit: 3,
                   callback: (tickValue: string | number) => Math.round(Number(tickValue)).toString()
                 },
-                grid: { drawOnChartArea: false }
-              }
-            }
-          }
-        });
-      } else {
-        this.chart.data.labels = this.chartData.labels;
-        this.chart.data.datasets[0].data = this.chartData.hashrate;
-        this.chart.data.datasets[1].data = this.chartData.temp;
-        this.chart.update();
-      }
-    }
-
-  private normalizeForDisplay(value: string): string {
-    return value.trim().toUpperCase();
-  }
-
-  private formatState(state: { value: string; unit: string }): string {
-    let value = this.normalizeForDisplay(state.value);
-    if (!value) {
-      return "";
-    }
-    const unit = this.normalizeForDisplay(state.unit);
-    // If unit is %, display as integer
-    if (unit === "%") {
-      const num = Number(value);
-      if (!isNaN(num)) {
-        value = Math.round(num).toString();
-      }
-    }
-    return unit ? `${value} ${unit}` : value;
-  }
-
-  private parseNumericState(state: string): number | null {
-    const match = state.match(/-?\d+(\.\d+)?/);
-    if (!match) {
-      return null;
-    }
-    const numeric = Number(match[0]);
-    return Number.isFinite(numeric) ? numeric : null;
-  }
-
-  private parseOverheatState(state: string): boolean | null {
-    const numeric = this.parseNumericState(state);
-    if (numeric === null) {
-      return null;
-    }
-    return numeric >= 1;
-  }
-
-  private readState(entityId?: string, defaultUnit = ""): { value: string; unit: string } {
-    if (!this.hass || !entityId) {
-      return { value: "", unit: "" };
-    }
-    const entity = this.hass.states[entityId];
-    if (!entity) {
-      return { value: "", unit: "" };
-    }
-    const unit = (entity.attributes?.unit_of_measurement as string | undefined) ?? defaultUnit;
-    return { value: entity.state, unit };
-  }
-
-  static styles = css`
-    @font-face {
-      font-family: "Bitcoin Miner Alien Local";
-      src: url(${unsafeCSS(alienRegularFontUrl)}) format("truetype");
-      font-weight: 400;
-      font-style: normal;
-      font-display: block;
-    }
-
-    @font-face {
-      font-family: "Bitcoin Miner Alien Local";
-      src: url(${unsafeCSS(alienBoldFontUrl)}) format("truetype");
-      font-weight: 700;
-      font-style: normal;
-      font-display: block;
-    }
-
-    :host {
+                type: 'line',
+                data: {
+                  labels: this.chartData.labels,
+                  datasets: [
+                    {
+                      label: 'Hashrate',
+                      data: this.chartData.hashrate,
+                      borderColor: '#15ff00',
+                      backgroundColor: 'rgba(21,255,0,0.12)',
+                      yAxisID: 'y',
+                      tension: 0.3,
+                      pointRadius: 0,
+                      borderWidth: 2,
+                    },
+                    {
+                      label: 'Temp',
+                      data: this.chartData.temp,
+                      borderColor: '#ff2fd6',
+                      backgroundColor: 'rgba(255,47,214,0.12)',
+                      yAxisID: 'y1',
+                      tension: 0.3,
+                      pointRadius: 0,
+                      borderWidth: 2,
+                    }
+                  ]
+                },
+                options: {
+                  responsive: false,
+                  animation: false,
+                  plugins: {
+                    legend: {
+                      display: true,
+                      labels: {
+                        color: '#ffe9fa',
+                        font: { size: 16, family: 'Bitcoin Miner Alien Local', weight: '400' },
+                        boxWidth: 18,
+                        boxHeight: 6,
+                        borderRadius: 1,
+                        usePointStyle: false
+                      }
+                    },
+                    tooltip: {
+                      enabled: true,
+                      titleFont: { family: 'Bitcoin Miner Alien Local', size: 16, weight: '700' },
+                      bodyFont: { family: 'Bitcoin Miner Alien Local', size: 14, weight: '400' },
+                      footerFont: { family: 'Bitcoin Miner Alien Local', size: 12, weight: '400' }
+                    }
+                  },
+                  layout: {
+                    padding: 0
+                  },
+                  font: {
+                    family: 'Bitcoin Miner Alien Local',
+                    size: 16,
+                    weight: '400'
+                  },
+                  scales: {
+                    x: {
+                      ticks: {
+                        color: '#fff',
+                        font: { size: 18, family: 'Bitcoin Miner Alien Local', weight: '400' },
+                        maxTicksLimit: 3,
+                        display: false // Hide time labels
+                      },
+                      grid: { color: 'rgba(255,255,255,0.08)' }
+                    },
+                    y: {
+                      type: 'linear',
+                      display: true,
+                      position: 'left',
+                      ticks: {
+                        color: '#fff',
+                        font: { size: 18, family: 'Bitcoin Miner Alien Local', weight: '400' },
+                        maxTicksLimit: 3,
+                        callback: (tickValue: string | number) => Math.round(Number(tickValue)).toString()
+                      },
+                      grid: { color: 'rgba(21,255,0,0.08)' }
+                    },
+                    y1: {
+                      type: 'linear',
+                      display: true,
+                      position: 'right',
+                      ticks: {
+                        color: '#fff',
+                        font: { size: 18, family: 'Bitcoin Miner Alien Local', weight: '700' },
+                        maxTicksLimit: 3,
+                        callback: (tickValue: string | number) => Math.round(Number(tickValue)).toString()
+                      },
+                      grid: { color: 'rgba(255,47,214,0.08)' }
+                    }
+                  }
+                }
+              });
       --bm-danger: #ff8b3d;
       --bm-text: #ffe9fa;
       --bm-font-stack: "Bitcoin Miner Alien Local", "Bitcoin Miner Alien", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;

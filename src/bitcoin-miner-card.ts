@@ -5,9 +5,11 @@ import alienRegularRawUrl from "../Alien-Encounters-Regular.ttf";
 import alienBoldRawUrl from "../Alien-Encounters-Bold.ttf";
 import backgroundRawUrl from "../base-layer.png";
 
-const alienRegularFontUrl = new URL(alienRegularRawUrl.toLowerCase(), import.meta.url).toString();
-const alienBoldFontUrl = new URL(alienBoldRawUrl.toLowerCase(), import.meta.url).toString();
-const backgroundImageUrl = new URL(backgroundRawUrl, import.meta.url).toString();
+// Use static HACS-compatible URLs for fonts and background
+const hacsBase = "/hacsfiles/bitcoin-miner-card/";
+const alienRegularFontUrl = `${hacsBase}Alien-Encounters-Regular.ttf`;
+const alienBoldFontUrl = `${hacsBase}Alien-Encounters-Bold.ttf`;
+const backgroundImageUrl = `${hacsBase}base-layer.png`;
 const globalFontStyleId = "bitcoin-miner-card-fonts";
 
 function ensureAlienFontsRegistered(): void {
@@ -86,10 +88,69 @@ export class BitcoinMinerCard extends LitElement {
   private chartData: { labels: string[]; hashrate: number[]; temp: number[] } = { labels: [], hashrate: [], temp: [] };
   private chartUpdateInterval: number | null = null;
 
+
+  private lastHistoryFetch = 0;
+
   public connectedCallback(): void {
     super.connectedCallback();
     ensureAlienFontsRegistered();
+    this.fetchAndPopulateHistory(true);
     this.startChartUpdater();
+  }
+
+  /**
+   * Fetches the last hour of history for hashrate and temperature entities and populates the chart data.
+   */
+  private async fetchAndPopulateHistory(force = false) {
+    if (!this.hass || !this.config) return;
+    const hashrateEntity = this.config.hashrate_entity;
+    const tempEntity = this.config.temperature_entity;
+    if (!hashrateEntity || !tempEntity) return;
+
+    // Throttle: only fetch if >3min since last fetch, unless forced
+    const nowTs = Date.now();
+    if (!force && nowTs - this.lastHistoryFetch < 180000) return;
+    this.lastHistoryFetch = nowTs;
+
+    const end = new Date();
+    const start = new Date(end.getTime() - 60 * 60 * 1000); // last hour
+    const entity_ids = [hashrateEntity, tempEntity];
+
+    try {
+      const historyResult = await this.hass.connection.sendMessagePromise({
+        type: "history/history_during_period",
+        start_time: start.toISOString(),
+        end_time: end.toISOString(),
+        entity_ids,
+        minimal_response: true,
+        no_attributes: true
+      });
+
+      // Reset chart data
+      this.chartData = { labels: [], hashrate: [], temp: [] };
+
+      // Parse the result: { entity_id: [ { s, lu }, ... ] }
+      const hashArr = historyResult[hashrateEntity] || [];
+      const tempArr = historyResult[tempEntity] || [];
+      const len = Math.min(hashArr.length, tempArr.length);
+      for (let i = 0; i < len; i++) {
+        const h = hashArr[i];
+        const t = tempArr[i];
+        const ts = new Date((h.lu || t.lu) * 1000);
+        const label = ts instanceof Date && !isNaN(ts.getTime()) ? ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : `${i}`;
+        const hVal = parseFloat(h.s);
+        const tVal = parseFloat(t.s);
+        if (!isNaN(hVal) && !isNaN(tVal)) {
+          this.chartData.labels.push(label);
+          this.chartData.hashrate.push(hVal);
+          this.chartData.temp.push(tVal);
+        }
+      }
+      this.renderChart();
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("Failed to fetch history for bitcoin-miner-card", e);
+    }
   }
 
   public disconnectedCallback(): void {
@@ -244,9 +305,8 @@ export class BitcoinMinerCard extends LitElement {
     private startChartUpdater() {
       if (this.chartUpdateInterval) return;
       this.chartUpdateInterval = window.setInterval(() => {
-        this.updateChartData();
-        this.renderChart();
-      }, 60000); // 1 minute
+        this.fetchAndPopulateHistory();
+      }, 300000); // every 5 minutes
     }
 
     private updateChartData() {

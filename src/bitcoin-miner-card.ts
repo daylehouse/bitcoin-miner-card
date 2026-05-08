@@ -10,6 +10,8 @@ const alienRegularFontUrl = `${hacsBase}Alien-Encounters-Regular.ttf`;
 const alienBoldFontUrl = `${hacsBase}Alien-Encounters-Bold.ttf`;
 const backgroundImageUrl = `${hacsBase}base-layer.png`;
 const globalFontStyleId = "bitcoin-miner-card-fonts";
+const chartUpdateIntervalMs = 60000;
+const chartHistoryThrottleMs = 60000;
 
 function ensureAlienFontsRegistered(): void {
   if (typeof document === "undefined") {
@@ -268,11 +270,7 @@ export class BitcoinMinerCard extends LitElement {
     const stageStyle = `background-image: url('${backgroundImageUrl}')`;
 
     const fanPercentage = this.parseNumericState(fan.value);
-    let fanSpinDuration = "10s";
-    if (fanPercentage !== null && fanPercentage > 0 && fanPercentage <= 100) {
-      const duration = 10 - (fanPercentage / 100) * 9.5;
-      fanSpinDuration = `${duration.toFixed(2)}s`;
-    }
+    const fanSpinStyles = this.getFanSpinStyles(fanPercentage);
 
     return html`
       <ha-card>
@@ -285,7 +283,7 @@ export class BitcoinMinerCard extends LitElement {
           ></canvas>
           <div class="title-value">${title}</div>
           <div class="fan-indicator">
-            <span class="fan-icon" style=${styleMap({ "animationDuration": fanSpinDuration })} aria-hidden="true"></span>
+            <span class="fan-icon" style=${styleMap(fanSpinStyles)} aria-hidden="true"></span>
             <span class="fan-value">${this.formatState(fan)}</span>
           </div>
           <div class="hashrate-row">
@@ -328,7 +326,7 @@ export class BitcoinMinerCard extends LitElement {
 
     this.chartUpdateInterval = window.setInterval(() => {
       void this.fetchAndPopulateHistory();
-    }, 60000);
+    }, chartUpdateIntervalMs);
   }
 
   /**
@@ -346,7 +344,7 @@ export class BitcoinMinerCard extends LitElement {
     }
 
     const nowTs = Date.now();
-    if (!force && nowTs - this.lastHistoryFetch < 180000) {
+    if (!force && nowTs - this.lastHistoryFetch < chartHistoryThrottleMs) {
       return;
     }
     this.lastHistoryFetch = nowTs;
@@ -450,6 +448,8 @@ export class BitcoinMinerCard extends LitElement {
       return;
     }
 
+    const spanMinutes = this.config?.chart_span_minutes ?? 60;
+
     const chartConfig: ChartConfiguration<"line", number[], string> = {
       type: "line",
       data: {
@@ -496,6 +496,12 @@ export class BitcoinMinerCard extends LitElement {
         },
         scales: {
           x: {
+            title: {
+              display: true,
+              text: `Last ${spanMinutes} mins`,
+              color: "#fff",
+              font: { size: 18, family: "Bitcoin Miner Alien Local" }
+            },
             ticks: {
               color: "#fff",
               font: { size: 18, family: "Bitcoin Miner Alien Local" },
@@ -601,6 +607,23 @@ export class BitcoinMinerCard extends LitElement {
     }
 
     return null;
+  }
+
+  private getFanSpinStyles(fanPercentage: number | null): Record<string, string> {
+    if (fanPercentage === null || fanPercentage <= 0) {
+      return {
+        animation: "none"
+      };
+    }
+
+    const clampedPercentage = Math.min(100, fanPercentage);
+    const normalized = clampedPercentage / 100;
+    const eased = Math.pow(normalized, 0.6);
+    const duration = 6.5 - eased * 6;
+
+    return {
+      animationDuration: `${duration.toFixed(2)}s`
+    };
   }
 
   static styles = css`

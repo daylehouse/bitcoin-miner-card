@@ -1,5 +1,6 @@
 import { css, html, LitElement, nothing } from "lit";
 import type { PropertyValues } from "lit";
+import { styleMap } from "lit/directives/style-map.js";
 import type { ChartConfiguration } from "chart.js";
 import Chart from "chart.js/auto";
 import { customElement, property } from "lit/decorators.js";
@@ -69,6 +70,7 @@ interface BitcoinMinerCardConfig {
   power_entity?: string;
   model_entity?: string;
   overheat_threshold?: number;
+  chart_span_minutes?: number;
 }
 
 interface ConfigFormControl {
@@ -150,8 +152,22 @@ export class BitcoinMinerCard extends LitElement {
         { name: "temperature_entity", selector: { entity: {} } },
         { name: "overheat_entity", selector: { entity: {} } },
         { name: "fan_entity", selector: { entity: {} } },
+        {
+          name: "chart_span_minutes",
+          selector: {
+            select: {
+              mode: "dropdown",
+              options: [
+                { value: 5, label: "5 minutes" },
+                { value: 15, label: "15 minutes" },
+                { value: 30, label: "30 minutes" },
+                { value: 60, label: "60 minutes" }
+              ]
+            }
+          }
+        },
         { name: "power_entity", selector: { entity: {} } },
-        { name: "model_entity", selector: { entity: {} } }
+        { name: "model_entity", selector: { entity: {} } },
       ],
       computeLabel: (schema) => {
         switch (schema.name) {
@@ -167,6 +183,8 @@ export class BitcoinMinerCard extends LitElement {
             return "Overheat Entity (0/1)";
           case "fan_entity":
             return "Fan Entity";
+          case "chart_span_minutes":
+            return "Chart Time Span";
           case "power_entity":
             return "Power Entity";
           case "model_entity":
@@ -185,6 +203,8 @@ export class BitcoinMinerCard extends LitElement {
             return "Binary overheat sensor: 0 = normal, 1 = overheat.";
           case "fan_entity":
             return "Fan speed sensor shown as percent.";
+          case "chart_span_minutes":
+            return "Time span of historical data to display in the chart.";
           default:
             return undefined;
         }
@@ -199,6 +219,7 @@ export class BitcoinMinerCard extends LitElement {
 
     this.config = {
       overheat_threshold: 85,
+      chart_span_minutes: 60,
       ...config
     };
   }
@@ -246,6 +267,13 @@ export class BitcoinMinerCard extends LitElement {
       overheatFromEntity ?? (numericTemp !== null && numericTemp >= threshold);
     const stageStyle = `background-image: url('${backgroundImageUrl}')`;
 
+    const fanPercentage = this.parseNumericState(fan.value);
+    let fanSpinDuration = "10s";
+    if (fanPercentage !== null && fanPercentage > 0 && fanPercentage <= 100) {
+      const duration = 10 - (fanPercentage / 100) * 9.5;
+      fanSpinDuration = `${duration.toFixed(2)}s`;
+    }
+
     return html`
       <ha-card>
         <section class="stage" style=${stageStyle}>
@@ -253,11 +281,11 @@ export class BitcoinMinerCard extends LitElement {
             id="miner-graph"
             width="368"
             height="239"
-            style="position:absolute; left:5.75%; top:20.5%; width:54.5%; height:46.8%; background:transparent; z-index:10; border:none;"
+            style="position:absolute; left:5.75%; top:20.5%; width:56.5%; height:46.8%; background:transparent; z-index:10; border:none;"
           ></canvas>
           <div class="title-value">${title}</div>
           <div class="fan-indicator">
-            <span class="fan-icon" aria-hidden="true"></span>
+            <span class="fan-icon" style=${styleMap({ "animationDuration": fanSpinDuration })} aria-hidden="true"></span>
             <span class="fan-value">${this.formatState(fan)}</span>
           </div>
           <div class="hashrate-row">
@@ -324,7 +352,8 @@ export class BitcoinMinerCard extends LitElement {
     this.lastHistoryFetch = nowTs;
 
     const end = new Date();
-    const start = new Date(end.getTime() - 60 * 60 * 1000);
+    const spanMinutes = this.config.chart_span_minutes ?? 60;
+    const start = new Date(end.getTime() - spanMinutes * 60 * 1000);
 
     try {
       const historyResult = await this.hass.connection.sendMessagePromise<unknown>({

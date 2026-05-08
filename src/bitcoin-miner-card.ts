@@ -271,6 +271,8 @@ export class BitcoinMinerCard extends LitElement {
 
     const fanPercentage = this.parseNumericState(fan.value);
     const fanSpinStyles = this.getFanSpinStyles(fanPercentage);
+    const fanDisplayValue =
+      fanPercentage === null ? this.formatState(fan) : `${Math.round(fanPercentage)} %`;
 
     return html`
       <ha-card>
@@ -284,7 +286,7 @@ export class BitcoinMinerCard extends LitElement {
           <div class="title-value">${title}</div>
           <div class="fan-indicator">
             <span class="fan-icon" style=${styleMap(fanSpinStyles)} aria-hidden="true"></span>
-            <span class="fan-value">${this.formatState(fan)}</span>
+            <span class="fan-value">${fanDisplayValue}</span>
           </div>
           <div class="hashrate-row">
             <span class="hashrate-value">${this.formatState(hashrate)}</span>
@@ -618,8 +620,8 @@ export class BitcoinMinerCard extends LitElement {
 
     const clampedPercentage = Math.min(100, fanPercentage);
     const normalized = clampedPercentage / 100;
-    const eased = Math.pow(normalized, 0.6);
-    const duration = 6.5 - eased * 6;
+    const eased = Math.pow(normalized, 0.45);
+    const duration = 7 - eased * 6.5;
 
     return {
       animationDuration: `${duration.toFixed(2)}s`

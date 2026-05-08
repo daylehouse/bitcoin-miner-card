@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "build": "rollup -c && npm run copy-assets",
-    "copy-assets": "cp -f base-layer.png Alien-Encounters-*.ttf dist/ && mv -f dist/Alien-Encounters-Regular.ttf dist/alien-encounters-regular.ttf 2>/dev/null || true && mv -f dist/Alien-Encounters-Bold.ttf dist/alien-encounters-bold.ttf 2>/dev/null || true",
+    "copy-assets": "cp -f base-layer.png Alien-Encounters-*.ttf dist/",
     "watch": "rollup -c -w",
     "lint": "tsc --noEmit"
   },

@@ -7,8 +7,8 @@ import backgroundRawUrl from "../base-layer.png";
 
 // Use static HACS-compatible URLs for fonts and background
 const hacsBase = "/hacsfiles/bitcoin-miner-card/";
-const alienRegularFontUrl = `${hacsBase}alien-encounters-regular.ttf`;
-const alienBoldFontUrl = `${hacsBase}alien-encounters-bold.ttf`;
+const alienRegularFontUrl = `${hacsBase}Alien-Encounters-Regular.ttf`;
+const alienBoldFontUrl = `${hacsBase}Alien-Encounters-Bold.ttf`;
 const backgroundImageUrl = `${hacsBase}base-layer.png`;
 const globalFontStyleId = "bitcoin-miner-card-fonts";
 

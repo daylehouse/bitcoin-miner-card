@@ -1,11 +1,9 @@
-import { css, html, LitElement, nothing, unsafeCSS } from "lit";
+import { css, html, LitElement, nothing } from "lit";
+import type { PropertyValues } from "lit";
+import type { ChartConfiguration } from "chart.js";
 import Chart from "chart.js/auto";
 import { customElement, property } from "lit/decorators.js";
-import alienRegularRawUrl from "../Alien-Encounters-Regular.ttf";
-import alienBoldRawUrl from "../Alien-Encounters-Bold.ttf";
-import backgroundRawUrl from "../base-layer.png";
 
-// Use static HACS-compatible URLs for fonts and background
 const hacsBase = "/hacsfiles/bitcoin-miner-card/";
 const alienRegularFontUrl = `${hacsBase}Alien-Encounters-Regular.ttf`;
 const alienBoldFontUrl = `${hacsBase}Alien-Encounters-Bold.ttf`;
@@ -46,8 +44,18 @@ function ensureAlienFontsRegistered(): void {
   }
 }
 
+interface HomeAssistantEntityState {
+  state: string;
+  attributes?: Record<string, unknown>;
+}
+
+interface HomeAssistantConnection {
+  sendMessagePromise<T = unknown>(message: unknown): Promise<T>;
+}
+
 interface HomeAssistant {
-  states: Record<string, { state: string; attributes?: Record<string, unknown> }>;
+  states: Record<string, HomeAssistantEntityState>;
+  connection?: HomeAssistantConnection;
 }
 
 interface BitcoinMinerCardConfig {
@@ -78,6 +86,18 @@ interface ConfigForm {
   computeHelper?: (schema: ConfigFormControl) => string | undefined;
 }
 
+interface ReadStateResult {
+  value: string;
+  unit: string;
+}
+
+interface HistoryPoint {
+  s?: string;
+  lu?: number;
+  last_updated_ts?: number;
+  state?: string;
+}
+
 @customElement("bitcoin-miner-card")
 export class BitcoinMinerCard extends LitElement {
   @property({ attribute: false }) public hass?: HomeAssistant;
@@ -85,79 +105,35 @@ export class BitcoinMinerCard extends LitElement {
   @property({ attribute: false }) public config?: BitcoinMinerCardConfig;
 
   private chart: Chart | null = null;
-  private chartData: { labels: string[]; hashrate: number[]; temp: number[] } = { labels: [], hashrate: [], temp: [] };
-  private chartUpdateInterval: number | null = null;
 
+  private chartData: { labels: string[]; hashrate: number[]; temp: number[] } = {
+    labels: [],
+    hashrate: [],
+    temp: []
+  };
+
+  private chartUpdateInterval: number | null = null;
 
   private lastHistoryFetch = 0;
 
   public connectedCallback(): void {
     super.connectedCallback();
     ensureAlienFontsRegistered();
-    this.fetchAndPopulateHistory(true);
+    void this.fetchAndPopulateHistory(true);
     this.startChartUpdater();
-  }
-
-  /**
-   * Fetches the last hour of history for hashrate and temperature entities and populates the chart data.
-   */
-  private async fetchAndPopulateHistory(force = false) {
-    if (!this.hass || !this.config) return;
-    const hashrateEntity = this.config.hashrate_entity;
-    const tempEntity = this.config.temperature_entity;
-    if (!hashrateEntity || !tempEntity) return;
-
-    // Throttle: only fetch if >3min since last fetch, unless forced
-    const nowTs = Date.now();
-    if (!force && nowTs - this.lastHistoryFetch < 180000) return;
-    this.lastHistoryFetch = nowTs;
-
-    const end = new Date();
-    const start = new Date(end.getTime() - 60 * 60 * 1000); // last hour
-    const entity_ids = [hashrateEntity, tempEntity];
-
-    try {
-      const historyResult = await this.hass.connection.sendMessagePromise({
-        type: "history/history_during_period",
-        start_time: start.toISOString(),
-        end_time: end.toISOString(),
-        entity_ids,
-        minimal_response: true,
-        no_attributes: true
-      });
-
-      // Reset chart data
-      this.chartData = { labels: [], hashrate: [], temp: [] };
-
-      // Parse the result: { entity_id: [ { s, lu }, ... ] }
-      const hashArr = historyResult[hashrateEntity] || [];
-      const tempArr = historyResult[tempEntity] || [];
-      const len = Math.min(hashArr.length, tempArr.length);
-      for (let i = 0; i < len; i++) {
-        const h = hashArr[i];
-        const t = tempArr[i];
-        const ts = new Date((h.lu || t.lu) * 1000);
-        const label = ts instanceof Date && !isNaN(ts.getTime()) ? ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : `${i}`;
-        const hVal = parseFloat(h.s);
-        const tVal = parseFloat(t.s);
-        if (!isNaN(hVal) && !isNaN(tVal)) {
-          this.chartData.labels.push(label);
-          this.chartData.hashrate.push(hVal);
-          this.chartData.temp.push(tVal);
-        }
-      }
-      this.renderChart();
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error("Failed to fetch history for bitcoin-miner-card", e);
-    }
   }
 
   public disconnectedCallback(): void {
     super.disconnectedCallback();
-    if (this.chartUpdateInterval) {
+
+    if (this.chartUpdateInterval !== null) {
       clearInterval(this.chartUpdateInterval);
       this.chartUpdateInterval = null;
+    }
+
+    if (this.chart) {
+      this.chart.destroy();
+      this.chart = null;
     }
   }
 
@@ -253,7 +229,7 @@ export class BitcoinMinerCard extends LitElement {
     }
 
     const titleState = this.readState(this.config.title_entity, "");
-    const title = this.normalizeForDisplay(titleState.value || "");
+    const title = this.normalizeForDisplay(titleState.value);
     const hashrate = this.readState(this.config.hashrate_entity, "MH/s");
     const temperature = this.readState(this.config.temperature_entity, "°C");
     const power = this.readState(this.config.power_entity, "W");
@@ -266,7 +242,8 @@ export class BitcoinMinerCard extends LitElement {
     const threshold = this.config.overheat_threshold ?? 85;
     const numericTemp = this.parseNumericState(temperature.value);
     const overheatFromEntity = this.parseOverheatState(overheatState.value);
-    const isOverheat = overheatFromEntity ?? (numericTemp !== null && numericTemp >= threshold);
+    const isOverheat =
+      overheatFromEntity ?? (numericTemp !== null && numericTemp >= threshold);
     const stageStyle = `background-image: url('${backgroundImageUrl}')`;
 
     return html`
@@ -288,207 +265,321 @@ export class BitcoinMinerCard extends LitElement {
           </div>
           <div class="device-values">
             <span class="stat-value value-ip val-white">${minerName}</span>
-            <span class="stat-value value-model val-pink">${this.normalizeForDisplay(model.value)}</span>
-            <span class="stat-value value-temp ${isOverheat ? 'val-danger' : 'val-amber'}">${this.formatState(temperature)}</span>
-            <span class="stat-value value-power val-cyan">${this.formatState(power)}</span>
+            <span class="stat-value value-model val-pink"
+              >${this.normalizeForDisplay(model.value)}</span
+            >
+            <span class="stat-value value-temp ${isOverheat ? "val-danger" : "val-amber"}"
+              >${this.formatState(temperature)}</span
+            >
+            <span class="stat-value value-power val-cyan"
+              >${this.formatState(power)}</span
+            >
           </div>
         </section>
       </ha-card>
     `;
   }
 
-
-  protected updated() {
+  protected updated(): void {
     this.renderChart();
   }
 
+  protected willUpdate(changedProperties: PropertyValues<this>): void {
+    if (
+      changedProperties.has("hass") ||
+      changedProperties.has("config")
+    ) {
+      void this.fetchAndPopulateHistory(true);
+    }
+  }
 
-    private startChartUpdater() {
-      if (this.chartUpdateInterval) return;
-      this.chartUpdateInterval = window.setInterval(() => {
-        this.fetchAndPopulateHistory();
-      }, 60000); // every 1 minute
+  private startChartUpdater(): void {
+    if (this.chartUpdateInterval !== null) {
+      return;
     }
 
+    this.chartUpdateInterval = window.setInterval(() => {
+      void this.fetchAndPopulateHistory();
+    }, 60000);
+  }
 
-    // Removed updateChartData: live fallback is no longer used; only history is shown
+  /**
+   * Fetches the last hour of history for hashrate and temperature entities and populates the chart data.
+   */
+  private async fetchAndPopulateHistory(force = false): Promise<void> {
+    if (!this.hass || !this.config || !this.hass.connection) {
+      return;
+    }
 
-    private renderChart() {
-      const canvas = this.renderRoot?.querySelector('#miner-graph') as HTMLCanvasElement | null;
-      if (!canvas) return;
-      if (!this.chart) {
-        this.chart = new Chart(canvas.getContext('2d')!, {
-          type: 'line',
-          data: {
-            labels: this.chartData.labels,
-            datasets: [
-              {
-                label: 'Hashrate',
-                data: this.chartData.hashrate,
-                borderColor: '#15ff00',
-                backgroundColor: 'rgba(21,255,0,0.12)',
-                yAxisID: 'y',
-                tension: 0.3,
-                pointRadius: 0,
-                borderWidth: 2,
-              },
-              {
-                label: 'Temp',
-                data: this.chartData.temp,
-                borderColor: '#ff2fd6',
-                backgroundColor: 'rgba(255,47,214,0.12)',
-                yAxisID: 'y1',
-                tension: 0.3,
-                pointRadius: 0,
-                borderWidth: 2,
-              }
-            ]
+    const hashrateEntity = this.config.hashrate_entity;
+    const tempEntity = this.config.temperature_entity;
+    if (!hashrateEntity || !tempEntity) {
+      return;
+    }
+
+    const nowTs = Date.now();
+    if (!force && nowTs - this.lastHistoryFetch < 180000) {
+      return;
+    }
+    this.lastHistoryFetch = nowTs;
+
+    const end = new Date();
+    const start = new Date(end.getTime() - 60 * 60 * 1000);
+
+    try {
+      const historyResult = await this.hass.connection.sendMessagePromise<unknown>({
+        type: "history/history_during_period",
+        start_time: start.toISOString(),
+        end_time: end.toISOString(),
+        entity_ids: [hashrateEntity, tempEntity],
+        minimal_response: true,
+        no_attributes: true
+      });
+
+      const { hashratePoints, tempPoints } = this.extractHistoryPoints(
+        historyResult,
+        hashrateEntity,
+        tempEntity
+      );
+
+      this.chartData = { labels: [], hashrate: [], temp: [] };
+      const len = Math.min(hashratePoints.length, tempPoints.length);
+
+      for (let i = 0; i < len; i += 1) {
+        const hashPoint = hashratePoints[i];
+        const tempPoint = tempPoints[i];
+
+        const rawTimestamp = hashPoint.lu ?? tempPoint.lu ?? hashPoint.last_updated_ts ?? tempPoint.last_updated_ts;
+        const timestampMs = typeof rawTimestamp === "number" ? rawTimestamp * 1000 : NaN;
+        const ts = new Date(timestampMs);
+
+        const label = Number.isFinite(ts.getTime())
+          ? ts.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+          : `${i}`;
+
+        const hashValue = parseFloat(hashPoint.s ?? hashPoint.state ?? "NaN");
+        const tempValue = parseFloat(tempPoint.s ?? tempPoint.state ?? "NaN");
+
+        if (!Number.isNaN(hashValue) && !Number.isNaN(tempValue)) {
+          this.chartData.labels.push(label);
+          this.chartData.hashrate.push(hashValue);
+          this.chartData.temp.push(tempValue);
+        }
+      }
+
+      if (this.chartData.labels.length === 0) {
+        const hashrateState = this.readState(hashrateEntity, "MH/s");
+        const tempState = this.readState(tempEntity, "°C");
+        const hashrateValue = this.parseNumericState(hashrateState.value);
+        const tempValue = this.parseNumericState(tempState.value);
+
+        if (hashrateValue !== null && tempValue !== null) {
+          this.chartData.labels.push("Now");
+          this.chartData.hashrate.push(hashrateValue);
+          this.chartData.temp.push(tempValue);
+        }
+      }
+
+      this.renderChart();
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error("Failed to fetch history for bitcoin-miner-card", error);
+    }
+  }
+
+  private extractHistoryPoints(
+    historyResult: unknown,
+    hashrateEntity: string,
+    tempEntity: string
+  ): { hashratePoints: HistoryPoint[]; tempPoints: HistoryPoint[] } {
+    if (historyResult && typeof historyResult === "object" && !Array.isArray(historyResult)) {
+      const resultMap = historyResult as Record<string, HistoryPoint[]>;
+      return {
+        hashratePoints: resultMap[hashrateEntity] ?? [],
+        tempPoints: resultMap[tempEntity] ?? []
+      };
+    }
+
+    if (Array.isArray(historyResult)) {
+      const entities = historyResult as Array<Array<HistoryPoint & { entity_id?: string }>>;
+      const hashratePoints = entities.find((series) => series[0]?.entity_id === hashrateEntity) ?? [];
+      const tempPoints = entities.find((series) => series[0]?.entity_id === tempEntity) ?? [];
+      return { hashratePoints, tempPoints };
+    }
+
+    return { hashratePoints: [], tempPoints: [] };
+  }
+
+  private renderChart(): void {
+    const canvas = this.renderRoot?.querySelector("#miner-graph") as HTMLCanvasElement | null;
+    if (!canvas) {
+      return;
+    }
+
+    const context = canvas.getContext("2d");
+    if (!context) {
+      return;
+    }
+
+    const chartConfig: ChartConfiguration<"line", number[], string> = {
+      type: "line",
+      data: {
+        labels: this.chartData.labels,
+        datasets: [
+          {
+            label: "Hashrate",
+            data: this.chartData.hashrate,
+            borderColor: "#15ff00",
+            backgroundColor: "rgba(21,255,0,0.12)",
+            yAxisID: "y",
+            tension: 0.3,
+            pointRadius: 0,
+            borderWidth: 2
           },
-          options: {
-            responsive: false,
-            animation: false,
-            plugins: {
-              legend: {
-                display: true,
-                labels: {
-                  color: '#ffe9fa',
-                  font: { size: 16, family: 'Bitcoin Miner Alien Local' },
-                  boxWidth: 18,
-                  boxHeight: 6,
-                  borderRadius: 1,
-                  usePointStyle: false
-                }
-              },
-              tooltip: { enabled: true }
+          {
+            label: "Temp",
+            data: this.chartData.temp,
+            borderColor: "#ff2fd6",
+            backgroundColor: "rgba(255,47,214,0.12)",
+            yAxisID: "y1",
+            tension: 0.3,
+            pointRadius: 0,
+            borderWidth: 2
+          }
+        ]
+      },
+      options: {
+        responsive: false,
+        animation: false,
+        plugins: {
+          legend: {
+            display: true,
+            labels: {
+              color: "#ffe9fa",
+              font: { size: 16, family: "Bitcoin Miner Alien Local" },
+              boxWidth: 18,
+              boxHeight: 6,
+              borderRadius: 1,
+              usePointStyle: false
+            }
+          },
+          tooltip: { enabled: true }
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: "#fff",
+              font: { size: 18, family: "Bitcoin Miner Alien Local" },
+              maxTicksLimit: 3,
+              display: false
             },
-            scales: {
-              x: {
-                ticks: {
-                  color: '#fff',
-                  font: { size: 18, family: 'Bitcoin Miner Alien Local' },
-                  maxTicksLimit: 3,
-                  display: false // Hide time labels
-                },
-                grid: { color: 'rgba(255,255,255,0.08)' }
-              },
-              y: {
-                type: 'linear',
-                display: true,
-                position: 'left',
-                ticks: {
-                  color: '#fff',
-                  font: { size: 18, family: 'Bitcoin Miner Alien Local' },
-                  maxTicksLimit: 3,
-                  callback: (tickValue: string | number) => Math.round(Number(tickValue)).toString()
-                },
-                grid: { color: 'rgba(21,255,0,0.08)' }
-              },
-              y1: {
-                type: 'linear',
-                display: true,
-                position: 'right',
-                ticks: {
-                  color: '#fff',
-                  font: { size: 18, family: 'Bitcoin Miner Alien Local' },
-                  maxTicksLimit: 3,
-                  callback: (tickValue: string | number) => Math.round(Number(tickValue)).toString()
-                },
-                type: 'line',
-                data: {
-                  labels: this.chartData.labels,
-                  datasets: [
-                    {
-                      label: 'Hashrate',
-                      data: this.chartData.hashrate,
-                      borderColor: '#15ff00',
-                      backgroundColor: 'rgba(21,255,0,0.12)',
-                      yAxisID: 'y',
-                      tension: 0.3,
-                      pointRadius: 0,
-                      borderWidth: 2,
-                    },
-                    {
-                      label: 'Temp',
-                      data: this.chartData.temp,
-                      borderColor: '#ff2fd6',
-                      backgroundColor: 'rgba(255,47,214,0.12)',
-                      yAxisID: 'y1',
-                      tension: 0.3,
-                      pointRadius: 0,
-                      borderWidth: 2,
-                    }
-                  ]
-                },
-                options: {
-                  responsive: false,
-                  animation: false,
-                  plugins: {
-                    legend: {
-                      display: true,
-                      labels: {
-                        color: '#ffe9fa',
-                        font: { size: 16, family: 'Bitcoin Miner Alien Local', weight: '400' },
-                        boxWidth: 18,
-                        boxHeight: 6,
-                        borderRadius: 1,
-                        usePointStyle: false
-                      }
-                    },
-                    tooltip: {
-                      enabled: true,
-                      titleFont: { family: 'Bitcoin Miner Alien Local', size: 16, weight: '700' },
-                      bodyFont: { family: 'Bitcoin Miner Alien Local', size: 14, weight: '400' },
-                      footerFont: { family: 'Bitcoin Miner Alien Local', size: 12, weight: '400' }
-                    }
-                  },
-                  layout: {
-                    padding: 0
-                  },
-                  font: {
-                    family: 'Bitcoin Miner Alien Local',
-                    size: 16,
-                    weight: '400'
-                  },
-                  scales: {
-                    x: {
-                      ticks: {
-                        color: '#fff',
-                        font: { size: 18, family: 'Bitcoin Miner Alien Local', weight: '400' },
-                        maxTicksLimit: 3,
-                        display: false // Hide time labels
-                      },
-                      grid: { color: 'rgba(255,255,255,0.08)' }
-                    },
-                    y: {
-                      type: 'linear',
-                      display: true,
-                      position: 'left',
-                      ticks: {
-                        color: '#fff',
-                        font: { size: 18, family: 'Bitcoin Miner Alien Local', weight: '400' },
-                        maxTicksLimit: 3,
-                        callback: (tickValue: string | number) => Math.round(Number(tickValue)).toString()
-                      },
-                      grid: { color: 'rgba(21,255,0,0.08)' }
-                    },
-                    y1: {
-                      type: 'linear',
-                      display: true,
-                      position: 'right',
-                      ticks: {
-                        color: '#fff',
-                        font: { size: 18, family: 'Bitcoin Miner Alien Local', weight: '700' },
-                        maxTicksLimit: 3,
-                        callback: (tickValue: string | number) => Math.round(Number(tickValue)).toString()
-                      },
-                      grid: { color: 'rgba(255,47,214,0.08)' }
-                    }
-                  }
-                }
-              });
+            grid: { color: "rgba(255,255,255,0.08)" }
+          },
+          y: {
+            type: "linear",
+            display: true,
+            position: "left",
+            ticks: {
+              color: "#fff",
+              font: { size: 18, family: "Bitcoin Miner Alien Local" },
+              maxTicksLimit: 3,
+              callback: (tickValue) => Math.round(Number(tickValue)).toString()
+            },
+            grid: { color: "rgba(21,255,0,0.08)" }
+          },
+          y1: {
+            type: "linear",
+            display: true,
+            position: "right",
+            ticks: {
+              color: "#fff",
+              font: { size: 18, family: "Bitcoin Miner Alien Local" },
+              maxTicksLimit: 3,
+              callback: (tickValue) => Math.round(Number(tickValue)).toString()
+            },
+            grid: { color: "rgba(255,47,214,0.08)" }
+          }
+        }
+      }
+    };
+
+    if (!this.chart) {
+      this.chart = new Chart(context, chartConfig);
+      return;
+    }
+
+    this.chart.data.labels = this.chartData.labels;
+    this.chart.data.datasets[0].data = this.chartData.hashrate;
+    this.chart.data.datasets[1].data = this.chartData.temp;
+    this.chart.update("none");
+  }
+
+  private readState(entityId: string | undefined, fallbackUnit = ""): ReadStateResult {
+    if (!entityId || !this.hass) {
+      return { value: "--", unit: fallbackUnit };
+    }
+
+    const stateObj = this.hass.states[entityId];
+    if (!stateObj) {
+      return { value: "--", unit: fallbackUnit };
+    }
+
+    const unitFromState = stateObj.attributes?.unit_of_measurement;
+    const unit = typeof unitFromState === "string" ? unitFromState : fallbackUnit;
+
+    return {
+      value: stateObj.state,
+      unit
+    };
+  }
+
+  private formatState(state: ReadStateResult): string {
+    const cleanValue = this.normalizeForDisplay(state.value);
+    if (cleanValue === "--") {
+      return cleanValue;
+    }
+
+    return state.unit ? `${cleanValue} ${state.unit}` : cleanValue;
+  }
+
+  private normalizeForDisplay(value: unknown): string {
+    if (value === null || value === undefined) {
+      return "--";
+    }
+
+    const text = String(value).trim();
+    if (["unknown", "unavailable", "none", "null", "nan"].includes(text.toLowerCase())) {
+      return "--";
+    }
+
+    return text.length > 0 ? text : "--";
+  }
+
+  private parseNumericState(value: string): number | null {
+    const numeric = Number.parseFloat(value.replace(/[^0-9.+-]/g, ""));
+    return Number.isFinite(numeric) ? numeric : null;
+  }
+
+  private parseOverheatState(value: string): boolean | null {
+    const normalized = value.trim().toLowerCase();
+
+    if (["1", "on", "true", "yes", "overheat"].includes(normalized)) {
+      return true;
+    }
+
+    if (["0", "off", "false", "no", "normal"].includes(normalized)) {
+      return false;
+    }
+
+    return null;
+  }
+
+  static styles = css`
+    :host {
       --bm-danger: #ff8b3d;
       --bm-text: #ffe9fa;
-      --bm-font-stack: "Bitcoin Miner Alien Local", "Bitcoin Miner Alien", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      --bm-font-stack: "Bitcoin Miner Alien Local", "Bitcoin Miner Alien", -apple-system,
+        BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
       --bm-title-left: 7%;
       --bm-title-top: 11%;
       --bm-title-width: 47%;
@@ -645,29 +736,75 @@ export class BitcoinMinerCard extends LitElement {
       max-width: 100%;
       text-transform: uppercase;
     }
-    .val-cyan   { color: #9ffbff; text-shadow: none; }
-    .val-white  { color: #ffffff; text-shadow: none; }
-    .val-pink   { color: #ff86da; text-shadow: none; }
-    .val-amber  { color: #ffd86f; text-shadow: none; }
-    .val-danger { color: var(--bm-danger); text-shadow: none; animation: tempAlert 0.9s ease-in-out infinite; }
 
-    .device-values > .value-ip { top: var(--bm-ip-top); }
-    .device-values > .value-model { top: var(--bm-model-top); }
-    .device-values > .value-temp { top: var(--bm-temp-top); }
-    .device-values > .value-power { top: var(--bm-power-top); }
+    .val-cyan {
+      color: #9ffbff;
+      text-shadow: none;
+    }
+
+    .val-white {
+      color: #ffffff;
+      text-shadow: none;
+    }
+
+    .val-pink {
+      color: #ff86da;
+      text-shadow: none;
+    }
+
+    .val-amber {
+      color: #ffd86f;
+      text-shadow: none;
+    }
+
+    .val-danger {
+      color: var(--bm-danger);
+      text-shadow: none;
+      animation: tempAlert 0.9s ease-in-out infinite;
+    }
+
+    .device-values > .value-ip {
+      top: var(--bm-ip-top);
+    }
+
+    .device-values > .value-model {
+      top: var(--bm-model-top);
+    }
+
+    .device-values > .value-temp {
+      top: var(--bm-temp-top);
+    }
+
+    .device-values > .value-power {
+      top: var(--bm-power-top);
+    }
 
     @keyframes tempAlert {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.62; }
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.62;
+      }
     }
 
     @keyframes fanSpin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     @media (max-width: 540px) {
-      .title-value { font-size: clamp(1.07rem, 3.73cqw, 1.6rem); }
+      .title-value {
+        font-size: clamp(1.07rem, 3.73cqw, 1.6rem);
+      }
+
       .hashrate-row {
         left: 18%;
         right: auto;
@@ -675,12 +812,16 @@ export class BitcoinMinerCard extends LitElement {
         width: 70%;
         font-size: clamp(0.55rem, 2.09cqw, 0.94rem);
       }
+
       .hashrate-value {
         font-size: clamp(1.51rem, 4.75cqw, 2.3rem);
         transform: translate(0, 0.12em);
         -webkit-text-stroke: 0.45px #15ff00;
       }
-      .stat-value { font-size: clamp(0.83rem, 2.86cqw, 1.23rem); }
+
+      .stat-value {
+        font-size: clamp(0.83rem, 2.86cqw, 1.23rem);
+      }
     }
   `;
 }
@@ -700,11 +841,13 @@ declare global {
 }
 
 window.customCards = window.customCards || [];
-window.customCards.push({
-  type: "bitcoin-miner-card",
-  name: "Bitcoin Miner Card",
-  preview: false,
-  description: "A custom card for monitoring Bitcoin miner stats.",
-  documentationURL:
-    "https://developers.home-assistant.io/docs/frontend/custom-ui/custom-card/"
-});
+if (!window.customCards.some((card) => card.type === "bitcoin-miner-card")) {
+  window.customCards.push({
+    type: "bitcoin-miner-card",
+    name: "Bitcoin Miner Card",
+    preview: false,
+    description: "A custom card for monitoring Bitcoin miner stats.",
+    documentationURL:
+      "https://developers.home-assistant.io/docs/frontend/custom-ui/custom-card/"
+  });
+}

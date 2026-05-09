@@ -701,7 +701,7 @@ export class BitcoinMinerCard extends LitElement {
       position: absolute;
       left: 80.8%;
       top: 36.5%;
-      width: 74%;
+      width: 55.5%;
       height: auto;
       transform: translate(-50%, -50%);
       z-index: 5;
@@ -911,7 +911,7 @@ export class BitcoinMinerCard extends LitElement {
       .overheat-indicator {
         left: 81.3%;
         top: 37%;
-        width: 88%;
+        width: 66%;
       }
 
       .title-value {

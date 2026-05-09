@@ -495,6 +495,20 @@ const Vr={attribute:!0,type:String,converter:x,reflect:!1,hasChanged:_},Hr=(t=Vr
         --bm-gear-top: 12.8%;
       }
 
+      .fan-indicator {
+        gap: 0.28rem;
+      }
+
+      .fan-icon {
+        width: clamp(1.07rem, 3.73cqw, 1.6rem);
+        height: clamp(1.07rem, 3.73cqw, 1.6rem);
+        margin-top: -0.08rem;
+      }
+
+      .fan-value {
+        font-size: clamp(1.07rem, 3.73cqw, 1.6rem);
+      }
+
       .pool-menu {
         right: 2.2%;
         top: 15.8%;

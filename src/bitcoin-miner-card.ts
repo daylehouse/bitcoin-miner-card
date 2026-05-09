@@ -843,6 +843,7 @@ export class BitcoinMinerCard extends LitElement {
 
     .device-values > .value-model {
       top: var(--bm-model-top);
+      font-size: clamp(1.00rem, 3.17cqw, 1.84rem);
     }
 
     .device-values > .value-temp {
@@ -880,16 +881,16 @@ export class BitcoinMinerCard extends LitElement {
       }
 
       .hashrate-row {
-        left: 15.8%;
+        left: 14.5%;
         right: auto;
-        top: 79.7%;
+        top: 78.8%;
         width: 70%;
         font-size: clamp(0.55rem, 2.09cqw, 0.94rem);
       }
 
       .hashrate-value {
         font-size: clamp(1.59rem, 4.99cqw, 2.42rem);
-        transform: translate(-0.16em, 0.02em);
+        transform: translate(-0.24em, -0.08em);
         -webkit-text-stroke: 0.45px #15ff00;
       }
 

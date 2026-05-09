@@ -299,7 +299,7 @@ const Vr={attribute:!0,type:String,converter:x,reflect:!1,hasChanged:_},Hr=(t=Vr
 
     .device-values > .value-model {
       top: var(--bm-model-top);
-      font-size: clamp(1.00rem, 3.17cqw, 1.84rem);
+      font-size: clamp(1.005rem, 3.174cqw, 1.841rem);
     }
 
     .device-values > .value-temp {
@@ -352,6 +352,10 @@ const Vr={attribute:!0,type:String,converter:x,reflect:!1,hasChanged:_},Hr=(t=Vr
 
       .stat-value {
         font-size: clamp(0.83rem, 2.86cqw, 1.23rem);
+      }
+
+      .device-values > .value-model {
+        font-size: clamp(0.826rem, 2.846cqw, 1.224rem);
       }
     }
   `,t([Wr({attribute:!1})],Kr.prototype,"hass",void 0),t([Wr({attribute:!1})],Kr.prototype,"config",void 0),Kr=t([(t=>(e,i)=>{void 0!==i?i.addInitializer(()=>{customElements.define(t,e)}):customElements.define(t,e)})("bitcoin-miner-card")],Kr),window.customCards=window.customCards||[],window.customCards.some(t=>"bitcoin-miner-card"===t.type)||window.customCards.push({type:"bitcoin-miner-card",name:"Bitcoin Miner Card",preview:!1,description:"A custom card for monitoring Bitcoin miner stats.",documentationURL:"https://developers.home-assistant.io/docs/frontend/custom-ui/custom-card/"});export{Kr as BitcoinMinerCard};

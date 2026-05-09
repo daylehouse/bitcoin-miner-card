@@ -843,7 +843,7 @@ export class BitcoinMinerCard extends LitElement {
 
     .device-values > .value-model {
       top: var(--bm-model-top);
-      font-size: clamp(1.00rem, 3.17cqw, 1.84rem);
+      font-size: clamp(1.005rem, 3.174cqw, 1.841rem);
     }
 
     .device-values > .value-temp {
@@ -896,6 +896,10 @@ export class BitcoinMinerCard extends LitElement {
 
       .stat-value {
         font-size: clamp(0.83rem, 2.86cqw, 1.23rem);
+      }
+
+      .device-values > .value-model {
+        font-size: clamp(0.826rem, 2.846cqw, 1.224rem);
       }
     }
   `;

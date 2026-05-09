@@ -3,13 +3,12 @@ import type { PropertyValues } from "lit";
 import { styleMap } from "lit/directives/style-map.js";
 import type { ChartConfiguration } from "chart.js";
 import Chart from "chart.js/auto";
-import { customElement, property } from "lit/decorators.js";
+import { customElement, property, state } from "lit/decorators.js";
 
-const hacsBase = "/hacsfiles/bitcoin-miner-card/";
-const alienRegularFontUrl = `${hacsBase}Alien-Encounters-Regular.ttf`;
-const alienBoldFontUrl = `${hacsBase}Alien-Encounters-Bold.ttf`;
-const backgroundImageUrl = `${hacsBase}base-layer.png`;
-const overheatImageUrl = `${hacsBase}overheat.png`;
+const alienRegularFontUrl = new URL("Alien-Encounters-Regular.ttf", import.meta.url).toString();
+const alienBoldFontUrl = new URL("Alien-Encounters-Bold.ttf", import.meta.url).toString();
+const backgroundImageUrl = new URL("base-layer.png", import.meta.url).toString();
+const overheatImageUrl = new URL("overheat.png", import.meta.url).toString();
 const globalFontStyleId = "bitcoin-miner-card-fonts";
 const chartUpdateIntervalMs = 60000;
 const chartHistoryThrottleMs = 60000;
@@ -60,6 +59,7 @@ interface HomeAssistantConnection {
 interface HomeAssistant {
   states: Record<string, HomeAssistantEntityState>;
   connection?: HomeAssistantConnection;
+  callService?: (domain: string, service: string, serviceData?: Record<string, unknown>) => void;
 }
 
 interface BitcoinMinerCardConfig {
@@ -70,6 +70,7 @@ interface BitcoinMinerCardConfig {
   temperature_entity?: string;
   overheat_entity?: string;
   fan_entity?: string;
+  mining_pool_select_entity?: string;
   power_entity?: string;
   model_entity?: string;
   overheat_threshold?: number;
@@ -121,6 +122,8 @@ export class BitcoinMinerCard extends LitElement {
 
   private lastHistoryFetch = 0;
 
+  @state() private isPoolMenuOpen = false;
+
   public connectedCallback(): void {
     super.connectedCallback();
     ensureAlienFontsRegistered();
@@ -155,6 +158,7 @@ export class BitcoinMinerCard extends LitElement {
         { name: "temperature_entity", selector: { entity: {} } },
         { name: "overheat_entity", selector: { entity: {} } },
         { name: "fan_entity", selector: { entity: {} } },
+        { name: "mining_pool_select_entity", selector: { entity: {} } },
         {
           name: "chart_span_minutes",
           selector: {
@@ -186,6 +190,8 @@ export class BitcoinMinerCard extends LitElement {
             return "Overheat Entity (0/1)";
           case "fan_entity":
             return "Fan Entity";
+          case "mining_pool_select_entity":
+            return "Mining Pool Select Entity";
           case "chart_span_minutes":
             return "Chart Time Span";
           case "power_entity":
@@ -206,6 +212,8 @@ export class BitcoinMinerCard extends LitElement {
             return "Binary overheat sensor: 0 = normal, 1 = overheat.";
           case "fan_entity":
             return "Fan speed sensor shown as percent.";
+          case "mining_pool_select_entity":
+            return "Home Assistant select entity used by the popup menu for pool selection.";
           case "chart_span_minutes":
             return "Time span of historical data to display in the chart.";
           default:
@@ -274,6 +282,9 @@ export class BitcoinMinerCard extends LitElement {
     const fanSpinStyles = this.getFanSpinStyles(fanPercentage);
     const fanDisplayValue =
       fanPercentage === null ? this.formatState(fan) : `${Math.round(fanPercentage)} %`;
+    const miningPools = this.getMiningPoolOptionsFromSelectEntity();
+    const hasMiningPools = miningPools.length > 0;
+    const activeMiningPool = this.getActiveMiningPool(miningPools);
 
     return html`
       <ha-card>
@@ -295,6 +306,37 @@ export class BitcoinMinerCard extends LitElement {
           <div class="fan-indicator">
             <span class="fan-icon" style=${styleMap(fanSpinStyles)} aria-hidden="true"></span>
             <span class="fan-value">${fanDisplayValue}</span>
+          </div>
+          <button
+            class="fan-gear-button"
+            @click=${this.togglePoolMenu}
+            title="Open mining pool menu"
+            aria-label="Open mining pool menu"
+          >
+            ⚙
+          </button>
+          ${this.isPoolMenuOpen
+            ? html`<button
+                class="pool-menu-backdrop"
+                @click=${this.closePoolMenu}
+                aria-label="Close mining pool menu"
+              ></button>`
+            : nothing}
+          <div class="pool-menu ${this.isPoolMenuOpen ? "is-open" : ""}" @click=${this.onPoolMenuClick}>
+            <label class="pool-menu-label" for="pool-select">Mining Pool</label>
+            <select
+              id="pool-select"
+              class="pool-menu-select"
+              .value=${activeMiningPool}
+              ?disabled=${!hasMiningPools}
+              @change=${this.onMiningPoolChange}
+            >
+              ${hasMiningPools
+                ? miningPools.map(
+                    (pool) => html`<option value=${pool}>${pool}</option>`
+                  )
+                : html`<option value="">No pools configured</option>`}
+            </select>
           </div>
           <div class="hashrate-row">
             <span class="hashrate-value">${this.formatState(hashrate)}</span>
@@ -647,6 +689,73 @@ export class BitcoinMinerCard extends LitElement {
     };
   }
 
+  private togglePoolMenu(event: Event): void {
+    event.stopPropagation();
+    this.isPoolMenuOpen = !this.isPoolMenuOpen;
+  }
+
+  private closePoolMenu(): void {
+    this.isPoolMenuOpen = false;
+  }
+
+  private onPoolMenuClick(event: Event): void {
+    event.stopPropagation();
+  }
+
+  private onMiningPoolChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const selectedPool = select.value;
+    const selectEntityId = this.config?.mining_pool_select_entity;
+
+    if (this.hass?.callService && selectEntityId) {
+      this.hass.callService("select", "select_option", {
+        entity_id: selectEntityId,
+        option: selectedPool
+      });
+    }
+
+    this.dispatchEvent(
+      new CustomEvent("mining-pool-changed", {
+        detail: { pool: selectedPool },
+        bubbles: true,
+        composed: true
+      })
+    );
+  }
+
+  private getMiningPoolOptionsFromSelectEntity(): string[] {
+    const selectEntityId = this.config?.mining_pool_select_entity;
+    if (!selectEntityId || !this.hass) {
+      return [];
+    }
+
+    const stateObj = this.hass.states[selectEntityId];
+    const options = stateObj?.attributes?.options;
+    if (!Array.isArray(options)) {
+      return [];
+    }
+
+    return options
+      .map((option) => (option === null || option === undefined ? "" : String(option).trim()))
+      .filter((option) => option.length > 0);
+  }
+
+  private getActiveMiningPool(miningPools: string[]): string {
+    if (miningPools.length === 0) {
+      return "";
+    }
+
+    const selectEntityId = this.config?.mining_pool_select_entity;
+    const rawState = selectEntityId && this.hass ? this.hass.states[selectEntityId]?.state : "";
+    const currentState = rawState ? String(rawState).trim() : "";
+
+    if (currentState && miningPools.includes(currentState)) {
+      return currentState;
+    }
+
+    return miningPools[0];
+  }
+
   static styles = css`
     :host {
       --bm-danger: #ff8b3d;
@@ -657,7 +766,9 @@ export class BitcoinMinerCard extends LitElement {
       --bm-title-top: 11%;
       --bm-title-width: 47%;
       --bm-fan-top: 12.5%;
-      --bm-fan-left: 86%;
+      --bm-fan-left: 74%;
+      --bm-gear-top: 12.5%;
+      --bm-gear-left: 92%;
       --bm-hashrate-left: 9%;
       --bm-hashrate-top: 75.65%;
       --bm-hashrate-width: 69%;
@@ -736,8 +847,14 @@ export class BitcoinMinerCard extends LitElement {
       align-items: center;
       gap: 0.5rem;
       color: #9ffbff;
-      pointer-events: none;
+      pointer-events: auto;
       max-width: 24%;
+      z-index: 22;
+    }
+
+    .fan-icon,
+    .fan-value {
+      pointer-events: none;
     }
 
     .fan-icon {
@@ -768,6 +885,96 @@ export class BitcoinMinerCard extends LitElement {
       text-shadow: none;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    .fan-gear-button {
+      position: absolute;
+      left: var(--bm-gear-left);
+      top: var(--bm-gear-top);
+      width: clamp(2.62rem, 8.7cqw, 4.88rem);
+      height: clamp(2.62rem, 8.7cqw, 4.88rem);
+      display: inline-grid;
+      place-items: center;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      appearance: none;
+      -webkit-appearance: none;
+      box-shadow: none;
+      color: #9ffbff;
+      font-size: clamp(2.23rem, 6.95cqw, 3.82rem);
+      line-height: 1;
+      cursor: pointer;
+      pointer-events: auto;
+      transform: translate(-50%, -50%);
+      transition: transform 0.18s ease, opacity 0.18s ease;
+      z-index: 22;
+    }
+
+    .fan-gear-button:hover {
+      opacity: 0.86;
+      transform: translate(-50%, -50%) scale(1.05);
+    }
+
+    .pool-menu-backdrop {
+      position: absolute;
+      inset: 0;
+      border: 0;
+      background: transparent;
+      z-index: 23;
+      padding: 0;
+      cursor: default;
+    }
+
+    .pool-menu {
+      position: absolute;
+      right: 3.2%;
+      top: 16%;
+      width: clamp(13.6rem, 39.1cqw, 20rem);
+      padding: 0.98rem 1.04rem 1.09rem;
+      border-radius: 0.65rem;
+      border: 1px solid rgba(159, 251, 255, 0.55);
+      background: rgba(4, 9, 24, 0.94);
+      box-shadow: 0 0 16px rgba(0, 0, 0, 0.42);
+      display: grid;
+      gap: 0.63rem;
+      opacity: 0;
+      transform: translateY(-6px) scale(0.98);
+      pointer-events: none;
+      transition: opacity 0.16s ease, transform 0.16s ease;
+      z-index: 24;
+    }
+
+    .pool-menu.is-open {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .pool-menu-label {
+      color: #9ffbff;
+      font-size: clamp(0.85rem, 2.42cqw, 1.17rem);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .pool-menu-select {
+      width: 100%;
+      border: 1px solid rgba(159, 251, 255, 0.65);
+      border-radius: 0.4rem;
+      background: #081429;
+      color: #ffffff;
+      font-family: var(--bm-font-stack);
+      font-size: clamp(0.85rem, 2.37cqw, 1.15rem);
+      font-weight: 700;
+      padding: 0.55rem 0.6rem;
+      outline: none;
+    }
+
+    .pool-menu-select:disabled {
+      opacity: 0.7;
     }
 
     .hashrate-row {
@@ -908,6 +1115,13 @@ export class BitcoinMinerCard extends LitElement {
     }
 
     @media (max-width: 540px) {
+      .pool-menu {
+        right: 2.2%;
+        top: 15.8%;
+        width: clamp(12.42rem, 64.4cqw, 16.68rem);
+        padding: 0.92rem 0.9rem 1.01rem;
+      }
+
       .overheat-indicator {
         left: 81.3%;
         top: 37%;

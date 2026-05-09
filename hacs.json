@@ -1,6 +1,6 @@
 {
   "name": "Bitcoin Miner Card",
   "content_in_root": false,
-  "filename": "bitcoin-miner-card.js",
+  "filename": "dist/bitcoin-miner-card.js",
   "render_readme": true
 }

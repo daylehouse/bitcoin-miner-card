@@ -11,8 +11,9 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "rollup -c && npm run copy-assets",
+    "build": "rollup -c && npm run copy-assets && npm run gzip-dist",
     "copy-assets": "cp -f src/base-layer.png src/overheat.png src/Alien-Encounters-*.ttf dist/",
+    "gzip-dist": "gzip -c -9 dist/bitcoin-miner-card.js > dist/bitcoin-miner-card.js.gz",
     "watch": "rollup -c -w",
     "lint": "tsc --noEmit"
   },

@@ -154,7 +154,7 @@ const Vr={attribute:!0,type:String,converter:x,reflect:!1,hasChanged:_},Hr=(t=Vr
       position: absolute;
       left: 80.8%;
       top: 36.5%;
-      width: 27.75%;
+      width: 40.24%;
       height: auto;
       transform: translate(-50%, -50%);
       z-index: 5;
@@ -364,7 +364,7 @@ const Vr={attribute:!0,type:String,converter:x,reflect:!1,hasChanged:_},Hr=(t=Vr
       .overheat-indicator {
         left: 81.3%;
         top: 37%;
-        width: 33%;
+        width: 47.85%;
       }
 
       .title-value {

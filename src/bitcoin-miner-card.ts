@@ -880,16 +880,16 @@ export class BitcoinMinerCard extends LitElement {
       }
 
       .hashrate-row {
-        left: 17%;
+        left: 15.8%;
         right: auto;
-        top: 80.5%;
+        top: 79.7%;
         width: 70%;
         font-size: clamp(0.55rem, 2.09cqw, 0.94rem);
       }
 
       .hashrate-value {
         font-size: clamp(1.59rem, 4.99cqw, 2.42rem);
-        transform: translate(-0.08em, 0.12em);
+        transform: translate(-0.16em, 0.02em);
         -webkit-text-stroke: 0.45px #15ff00;
       }
 

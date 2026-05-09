@@ -78,7 +78,11 @@ const Vr={attribute:!0,type:String,converter:x,reflect:!1,hasChanged:_},Hr=(t=Vr
             <span class="hashrate-value">${this.formatState(i)}</span>
           </div>
           <div class="device-values">
-            <span class="stat-value value-ip val-white">${r}</span>
+            <span
+              class="stat-value value-ip val-white val-link"
+              @click=${()=>this.openMinerUI(r)}
+              title="Open miner UI"
+            >${r}</span>
             <span class="stat-value value-model val-pink"
               >${this.normalizeForDisplay(o.value)}</span
             >
@@ -91,7 +95,7 @@ const Vr={attribute:!0,type:String,converter:x,reflect:!1,hasChanged:_},Hr=(t=Vr
           </div>
         </section>
       </ha-card>
-    `}updated(){this.renderChart()}willUpdate(t){(t.has("hass")||t.has("config"))&&this.fetchAndPopulateHistory(!0)}startChartUpdater(){null===this.chartUpdateInterval&&(this.chartUpdateInterval=window.setInterval(()=>{this.fetchAndPopulateHistory()},6e4))}async fetchAndPopulateHistory(t=!1){if(!this.hass||!this.config||!this.hass.connection)return;const e=this.config.hashrate_entity,i=this.config.temperature_entity;if(!e||!i)return;const s=Date.now();if(!t&&s-this.lastHistoryFetch<6e4)return;this.lastHistoryFetch=s;const n=new Date,o=this.config.chart_span_minutes??60,a=new Date(n.getTime()-60*o*1e3);try{const t=await this.hass.connection.sendMessagePromise({type:"history/history_during_period",start_time:a.toISOString(),end_time:n.toISOString(),entity_ids:[e,i],minimal_response:!0,no_attributes:!0}),{hashratePoints:s,tempPoints:o}=this.extractHistoryPoints(t,e,i);this.chartData={labels:[],hashrate:[],temp:[]};const r=Math.min(s.length,o.length);for(let t=0;t<r;t+=1){const e=s[t],i=o[t],n=e.lu??i.lu??e.last_updated_ts??i.last_updated_ts,a=new Date("number"==typeof n?1e3*n:NaN),r=Number.isFinite(a.getTime())?a.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):`${t}`,l=parseFloat(e.s??e.state??"NaN"),h=parseFloat(i.s??i.state??"NaN");Number.isNaN(l)||Number.isNaN(h)||(this.chartData.labels.push(r),this.chartData.hashrate.push(l),this.chartData.temp.push(h))}if(0===this.chartData.labels.length){const t=this.readState(e,"MH/s"),s=this.readState(i,"°C"),n=this.parseNumericState(t.value),o=this.parseNumericState(s.value);null!==n&&null!==o&&(this.chartData.labels.push("Now"),this.chartData.hashrate.push(n),this.chartData.temp.push(o))}this.renderChart()}catch(t){console.error("Failed to fetch history for bitcoin-miner-card",t)}}extractHistoryPoints(t,e,i){if(t&&"object"==typeof t&&!Array.isArray(t)){const s=t;return{hashratePoints:s[e]??[],tempPoints:s[i]??[]}}if(Array.isArray(t)){const s=t;return{hashratePoints:s.find(t=>t[0]?.entity_id===e)??[],tempPoints:s.find(t=>t[0]?.entity_id===i)??[]}}return{hashratePoints:[],tempPoints:[]}}renderChart(){const t=this.renderRoot?.querySelector("#miner-graph");if(!t)return;const e=t.getContext("2d");if(!e)return;const i=this.config?.chart_span_minutes??60,s={type:"line",data:{labels:this.chartData.labels,datasets:[{label:"Hashrate",data:this.chartData.hashrate,borderColor:"#15ff00",backgroundColor:"rgba(21,255,0,0.12)",yAxisID:"y",tension:.3,pointRadius:0,borderWidth:2},{label:"Temp",data:this.chartData.temp,borderColor:"#ff2fd6",backgroundColor:"rgba(255,47,214,0.12)",yAxisID:"y1",tension:.3,pointRadius:0,borderWidth:2}]},options:{responsive:!1,animation:!1,plugins:{legend:{display:!0,labels:{color:"#ffe9fa",font:{size:16,family:"Bitcoin Miner Alien Local"},boxWidth:18,boxHeight:6,borderRadius:1,usePointStyle:!1}},tooltip:{enabled:!0}},scales:{x:{title:{display:!0,text:`Last ${i} mins`,color:"#fff",font:{size:18,family:"Bitcoin Miner Alien Local"}},ticks:{color:"#fff",font:{size:18,family:"Bitcoin Miner Alien Local"},maxTicksLimit:3,display:!1},grid:{color:"rgba(255,255,255,0.08)"}},y:{type:"linear",display:!0,position:"left",ticks:{color:"#fff",font:{size:18,family:"Bitcoin Miner Alien Local"},maxTicksLimit:3,callback:t=>Math.round(Number(t)).toString()},grid:{color:"rgba(21,255,0,0.08)"}},y1:{type:"linear",display:!0,position:"right",ticks:{color:"#fff",font:{size:18,family:"Bitcoin Miner Alien Local"},maxTicksLimit:3,callback:t=>Math.round(Number(t)).toString()},grid:{color:"rgba(255,47,214,0.08)"}}}}};this.chart?(this.chart.data.labels=this.chartData.labels,this.chart.data.datasets[0].data=this.chartData.hashrate,this.chart.data.datasets[1].data=this.chartData.temp,this.chart.update("none")):this.chart=new Vo(e,s)}readState(t,e=""){if(!t||!this.hass)return{value:"--",unit:e};const i=this.hass.states[t];if(!i)return{value:"--",unit:e};const s=i.attributes?.unit_of_measurement,n="string"==typeof s?s:e;return{value:i.state,unit:n}}formatState(t){const e=this.normalizeForDisplay(t.value);return"--"===e?e:t.unit?`${e} ${t.unit}`:e}normalizeForDisplay(t){if(null==t)return"--";const e=String(t).trim();return["unknown","unavailable","none","null","nan"].includes(e.toLowerCase())?"--":e.length>0?e:"--"}parseNumericState(t){const e=Number.parseFloat(t.replace(/[^0-9.+-]/g,""));return Number.isFinite(e)?e:null}parseOverheatState(t){const e=t.trim().toLowerCase();return!!["1","on","true","yes","overheat"].includes(e)||!["0","off","false","no","normal"].includes(e)&&null}getFanSpinStyles(t){if(null===t||t<=0)return{animation:"none"};const e=Math.min(100,t)/100;return{animationDuration:`${(7-6.5*Math.pow(e,.45)).toFixed(2)}s`}}};Kr.styles=((t,...e)=>{const i=1===t.length?t[0]:e.reduce((e,i,s)=>e+(t=>{if(!0===t._$cssResult$)return t.cssText;if("number"==typeof t)return t;throw Error("Value passed to 'css' function must be a 'css' function result: "+t+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(i)+t[s+1],t[0]);return new o(i,t,s)})`
+    `}updated(){this.renderChart()}willUpdate(t){(t.has("hass")||t.has("config"))&&this.fetchAndPopulateHistory(!0)}startChartUpdater(){null===this.chartUpdateInterval&&(this.chartUpdateInterval=window.setInterval(()=>{this.fetchAndPopulateHistory()},6e4))}async fetchAndPopulateHistory(t=!1){if(!this.hass||!this.config||!this.hass.connection)return;const e=this.config.hashrate_entity,i=this.config.temperature_entity;if(!e||!i)return;const s=Date.now();if(!t&&s-this.lastHistoryFetch<6e4)return;this.lastHistoryFetch=s;const n=new Date,o=this.config.chart_span_minutes??60,a=new Date(n.getTime()-60*o*1e3);try{const t=await this.hass.connection.sendMessagePromise({type:"history/history_during_period",start_time:a.toISOString(),end_time:n.toISOString(),entity_ids:[e,i],minimal_response:!0,no_attributes:!0}),{hashratePoints:s,tempPoints:o}=this.extractHistoryPoints(t,e,i);this.chartData={labels:[],hashrate:[],temp:[]};const r=Math.min(s.length,o.length);for(let t=0;t<r;t+=1){const e=s[t],i=o[t],n=e.lu??i.lu??e.last_updated_ts??i.last_updated_ts,a=new Date("number"==typeof n?1e3*n:NaN),r=Number.isFinite(a.getTime())?a.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):`${t}`,l=parseFloat(e.s??e.state??"NaN"),h=parseFloat(i.s??i.state??"NaN");Number.isNaN(l)||Number.isNaN(h)||(this.chartData.labels.push(r),this.chartData.hashrate.push(l),this.chartData.temp.push(h))}if(0===this.chartData.labels.length){const t=this.readState(e,"MH/s"),s=this.readState(i,"°C"),n=this.parseNumericState(t.value),o=this.parseNumericState(s.value);null!==n&&null!==o&&(this.chartData.labels.push("Now"),this.chartData.hashrate.push(n),this.chartData.temp.push(o))}this.renderChart()}catch(t){console.error("Failed to fetch history for bitcoin-miner-card",t)}}extractHistoryPoints(t,e,i){if(t&&"object"==typeof t&&!Array.isArray(t)){const s=t;return{hashratePoints:s[e]??[],tempPoints:s[i]??[]}}if(Array.isArray(t)){const s=t;return{hashratePoints:s.find(t=>t[0]?.entity_id===e)??[],tempPoints:s.find(t=>t[0]?.entity_id===i)??[]}}return{hashratePoints:[],tempPoints:[]}}renderChart(){const t=this.renderRoot?.querySelector("#miner-graph");if(!t)return;const e=t.getContext("2d");if(!e)return;const i=this.config?.chart_span_minutes??60,s={type:"line",data:{labels:this.chartData.labels,datasets:[{label:"Hashrate",data:this.chartData.hashrate,borderColor:"#15ff00",backgroundColor:"rgba(21,255,0,0.12)",yAxisID:"y",tension:.3,pointRadius:0,borderWidth:2},{label:"Temp",data:this.chartData.temp,borderColor:"#ff2fd6",backgroundColor:"rgba(255,47,214,0.12)",yAxisID:"y1",tension:.3,pointRadius:0,borderWidth:2}]},options:{responsive:!1,animation:!1,plugins:{legend:{display:!0,labels:{color:"#ffe9fa",font:{size:16,family:"Bitcoin Miner Alien Local"},boxWidth:18,boxHeight:6,borderRadius:1,usePointStyle:!1}},tooltip:{enabled:!0}},scales:{x:{title:{display:!0,text:`Last ${i} mins`,color:"#fff",font:{size:18,family:"Bitcoin Miner Alien Local"}},ticks:{color:"#fff",font:{size:18,family:"Bitcoin Miner Alien Local"},maxTicksLimit:3,display:!1},grid:{color:"rgba(255,255,255,0.08)"}},y:{type:"linear",display:!0,position:"left",ticks:{color:"#fff",font:{size:18,family:"Bitcoin Miner Alien Local"},maxTicksLimit:3,callback:t=>Math.round(Number(t)).toString()},grid:{color:"rgba(21,255,0,0.08)"}},y1:{type:"linear",display:!0,position:"right",ticks:{color:"#fff",font:{size:18,family:"Bitcoin Miner Alien Local"},maxTicksLimit:3,callback:t=>Math.round(Number(t)).toString()},grid:{color:"rgba(255,47,214,0.08)"}}}}};this.chart?(this.chart.data.labels=this.chartData.labels,this.chart.data.datasets[0].data=this.chartData.hashrate,this.chart.data.datasets[1].data=this.chartData.temp,this.chart.update("none")):this.chart=new Vo(e,s)}readState(t,e=""){if(!t||!this.hass)return{value:"--",unit:e};const i=this.hass.states[t];if(!i)return{value:"--",unit:e};const s=i.attributes?.unit_of_measurement,n="string"==typeof s?s:e;return{value:i.state,unit:n}}formatState(t){const e=this.normalizeForDisplay(t.value);return"--"===e?e:t.unit?`${e} ${t.unit}`:e}normalizeForDisplay(t){if(null==t)return"--";const e=String(t).trim();return["unknown","unavailable","none","null","nan"].includes(e.toLowerCase())?"--":e.length>0?e:"--"}parseNumericState(t){const e=Number.parseFloat(t.replace(/[^0-9.+-]/g,""));return Number.isFinite(e)?e:null}parseOverheatState(t){const e=t.trim().toLowerCase();return!!["1","on","true","yes","overheat"].includes(e)||!["0","off","false","no","normal"].includes(e)&&null}openMinerUI(t){t&&"--"!==t&&window.open(`http://${t}`,"_blank","noopener,noreferrer")}getFanSpinStyles(t){if(null===t||t<=0)return{animation:"none"};const e=Math.min(100,t)/100;return{animationDuration:`${(7-6.5*Math.pow(e,.45)).toFixed(2)}s`}}};Kr.styles=((t,...e)=>{const i=1===t.length?t[0]:e.reduce((e,i,s)=>e+(t=>{if(!0===t._$cssResult$)return t.cssText;if("number"==typeof t)return t;throw Error("Value passed to 'css' function must be a 'css' function result: "+t+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(i)+t[s+1],t[0]);return new o(i,t,s)})`
     :host {
       --bm-danger: #ff8b3d;
       --bm-text: #ffe9fa;
@@ -102,7 +106,7 @@ const Vr={attribute:!0,type:String,converter:x,reflect:!1,hasChanged:_},Hr=(t=Vr
       --bm-title-width: 47%;
       --bm-fan-top: 12.5%;
       --bm-fan-left: 86%;
-      --bm-hashrate-left: 10%;
+      --bm-hashrate-left: 9%;
       --bm-hashrate-top: 75.65%;
       --bm-hashrate-width: 69%;
       --bm-hashrate-value-width: 100%;
@@ -217,8 +221,8 @@ const Vr={attribute:!0,type:String,converter:x,reflect:!1,hasChanged:_},Hr=(t=Vr
       display: block;
       width: var(--bm-hashrate-value-width);
       text-align: left;
-      font-size: clamp(1.82rem, 5.7cqw, 3.32rem);
-      transform: translate(0, 0.12em);
+      font-size: clamp(1.91rem, 5.99cqw, 3.49rem);
+      transform: translate(-0.08em, 0.12em);
       -webkit-text-stroke: 0.7px #15ff00;
       white-space: nowrap;
       text-shadow: none;
@@ -262,6 +266,14 @@ const Vr={attribute:!0,type:String,converter:x,reflect:!1,hasChanged:_},Hr=(t=Vr
     .val-white {
       color: #ffffff;
       text-shadow: none;
+    }
+
+    .val-link {
+      cursor: pointer;
+    }
+
+    .val-link:hover {
+      opacity: 0.8;
     }
 
     .val-pink {
@@ -323,7 +335,7 @@ const Vr={attribute:!0,type:String,converter:x,reflect:!1,hasChanged:_},Hr=(t=Vr
       }
 
       .hashrate-row {
-        left: 18%;
+        left: 17%;
         right: auto;
         top: 80.5%;
         width: 70%;
@@ -331,8 +343,8 @@ const Vr={attribute:!0,type:String,converter:x,reflect:!1,hasChanged:_},Hr=(t=Vr
       }
 
       .hashrate-value {
-        font-size: clamp(1.51rem, 4.75cqw, 2.3rem);
-        transform: translate(0, 0.12em);
+        font-size: clamp(1.59rem, 4.99cqw, 2.42rem);
+        transform: translate(-0.08em, 0.12em);
         -webkit-text-stroke: 0.45px #15ff00;
       }
 

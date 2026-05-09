@@ -292,7 +292,11 @@ export class BitcoinMinerCard extends LitElement {
             <span class="hashrate-value">${this.formatState(hashrate)}</span>
           </div>
           <div class="device-values">
-            <span class="stat-value value-ip val-white">${minerName}</span>
+            <span
+              class="stat-value value-ip val-white val-link"
+              @click=${() => this.openMinerUI(minerName)}
+              title="Open miner UI"
+            >${minerName}</span>
             <span class="stat-value value-model val-pink"
               >${this.normalizeForDisplay(model.value)}</span
             >
@@ -611,6 +615,13 @@ export class BitcoinMinerCard extends LitElement {
     return null;
   }
 
+  private openMinerUI(ip: string): void {
+    if (!ip || ip === "--") {
+      return;
+    }
+    window.open(`http://${ip}`, "_blank", "noopener,noreferrer");
+  }
+
   private getFanSpinStyles(fanPercentage: number | null): Record<string, string> {
     if (fanPercentage === null || fanPercentage <= 0) {
       return {
@@ -639,7 +650,7 @@ export class BitcoinMinerCard extends LitElement {
       --bm-title-width: 47%;
       --bm-fan-top: 12.5%;
       --bm-fan-left: 86%;
-      --bm-hashrate-left: 10%;
+      --bm-hashrate-left: 9%;
       --bm-hashrate-top: 75.65%;
       --bm-hashrate-width: 69%;
       --bm-hashrate-value-width: 100%;
@@ -754,8 +765,8 @@ export class BitcoinMinerCard extends LitElement {
       display: block;
       width: var(--bm-hashrate-value-width);
       text-align: left;
-      font-size: clamp(1.82rem, 5.7cqw, 3.32rem);
-      transform: translate(0, 0.12em);
+      font-size: clamp(1.91rem, 5.99cqw, 3.49rem);
+      transform: translate(-0.08em, 0.12em);
       -webkit-text-stroke: 0.7px #15ff00;
       white-space: nowrap;
       text-shadow: none;
@@ -799,6 +810,14 @@ export class BitcoinMinerCard extends LitElement {
     .val-white {
       color: #ffffff;
       text-shadow: none;
+    }
+
+    .val-link {
+      cursor: pointer;
+    }
+
+    .val-link:hover {
+      opacity: 0.8;
     }
 
     .val-pink {
@@ -860,7 +879,7 @@ export class BitcoinMinerCard extends LitElement {
       }
 
       .hashrate-row {
-        left: 18%;
+        left: 17%;
         right: auto;
         top: 80.5%;
         width: 70%;
@@ -868,8 +887,8 @@ export class BitcoinMinerCard extends LitElement {
       }
 
       .hashrate-value {
-        font-size: clamp(1.51rem, 4.75cqw, 2.3rem);
-        transform: translate(0, 0.12em);
+        font-size: clamp(1.59rem, 4.99cqw, 2.42rem);
+        transform: translate(-0.08em, 0.12em);
         -webkit-text-stroke: 0.45px #15ff00;
       }
 

@@ -896,12 +896,13 @@ export class BitcoinMinerCard extends LitElement {
       display: inline-grid;
       place-items: center;
       padding: 0;
-      border: 0;
-      border-radius: 50%;
-      background: transparent;
+      border: none !important;
+      border-radius: 0;
+      background: none !important;
       appearance: none;
       -webkit-appearance: none;
-      box-shadow: none;
+      box-shadow: none !important;
+      outline: none;
       color: #9ffbff;
       font-size: clamp(2.23rem, 6.95cqw, 3.82rem);
       line-height: 1;

@@ -90,7 +90,7 @@ const Vr={attribute:!0,type:String,converter:x,reflect:!1,hasChanged:_},Hr=(t=Vr
             title="Open mining pool menu"
             aria-label="Open mining pool menu"
           >
-            ⚙
+            ⚙︎
           </button>
           ${this.isPoolMenuOpen?H`<button
                 class="pool-menu-backdrop"
@@ -489,11 +489,26 @@ const Vr={attribute:!0,type:String,converter:x,reflect:!1,hasChanged:_},Hr=(t=Vr
     }
 
     @media (max-width: 540px) {
+      :host {
+        --bm-gear-left: 88%;
+        --bm-gear-top: 12.8%;
+      }
+
       .pool-menu {
         right: 2.2%;
         top: 15.8%;
         width: clamp(12.42rem, 64.4cqw, 16.68rem);
         padding: 0.92rem 0.9rem 1.01rem;
+      }
+
+      .fan-gear-button {
+        width: clamp(2.1rem, 6.96cqw, 3.9rem);
+        height: clamp(2.1rem, 6.96cqw, 3.9rem);
+        font-size: clamp(1.78rem, 5.56cqw, 3.06rem);
+        color: #9ffbff;
+        text-shadow: none;
+        opacity: 1;
+        -webkit-tap-highlight-color: transparent;
       }
 
       .overheat-indicator {

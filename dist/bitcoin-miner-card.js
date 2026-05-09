@@ -152,9 +152,9 @@ const Vr={attribute:!0,type:String,converter:x,reflect:!1,hasChanged:_},Hr=(t=Vr
 
     .overheat-indicator {
       position: absolute;
-      left: 85.8%;
-      top: 26.5%;
-      width: 18.5%;
+      left: 80.8%;
+      top: 36.5%;
+      width: 74%;
       height: auto;
       transform: translate(-50%, -50%);
       z-index: 5;
@@ -362,9 +362,9 @@ const Vr={attribute:!0,type:String,converter:x,reflect:!1,hasChanged:_},Hr=(t=Vr
 
     @media (max-width: 540px) {
       .overheat-indicator {
-        left: 86.3%;
-        top: 27%;
-        width: 22%;
+        left: 81.3%;
+        top: 37%;
+        width: 88%;
       }
 
       .title-value {

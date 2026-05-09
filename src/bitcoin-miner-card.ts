@@ -9,6 +9,7 @@ const hacsBase = "/hacsfiles/bitcoin-miner-card/";
 const alienRegularFontUrl = `${hacsBase}Alien-Encounters-Regular.ttf`;
 const alienBoldFontUrl = `${hacsBase}Alien-Encounters-Bold.ttf`;
 const backgroundImageUrl = `${hacsBase}base-layer.png`;
+const overheatImageUrl = `${hacsBase}overheat.png`;
 const globalFontStyleId = "bitcoin-miner-card-fonts";
 const chartUpdateIntervalMs = 60000;
 const chartHistoryThrottleMs = 60000;
@@ -277,6 +278,13 @@ export class BitcoinMinerCard extends LitElement {
     return html`
       <ha-card>
         <section class="stage" style=${stageStyle}>
+          ${isOverheat
+            ? html`<img
+                class="overheat-indicator"
+                src=${overheatImageUrl}
+                alt="Overheat warning"
+              />`
+            : nothing}
           <canvas
             id="miner-graph"
             width="368"
@@ -689,6 +697,19 @@ export class BitcoinMinerCard extends LitElement {
       overflow: hidden;
     }
 
+    .overheat-indicator {
+      position: absolute;
+      left: 85.8%;
+      top: 26.5%;
+      width: 18.5%;
+      height: auto;
+      transform: translate(-50%, -50%);
+      z-index: 5;
+      pointer-events: none;
+      filter: drop-shadow(0 0 10px rgba(255, 80, 54, 0.55));
+      animation: overheatPulse 0.9s ease-in-out infinite;
+    }
+
     .title-value {
       position: absolute;
       left: var(--bm-title-left);
@@ -875,7 +896,24 @@ export class BitcoinMinerCard extends LitElement {
       }
     }
 
+    @keyframes overheatPulse {
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.7;
+      }
+    }
+
     @media (max-width: 540px) {
+      .overheat-indicator {
+        left: 86.3%;
+        top: 27%;
+        width: 22%;
+      }
+
       .title-value {
         font-size: clamp(1.07rem, 3.73cqw, 1.6rem);
       }

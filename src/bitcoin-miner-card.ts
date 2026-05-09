@@ -814,6 +814,7 @@ export class BitcoinMinerCard extends LitElement {
 
     .val-link {
       cursor: pointer;
+      pointer-events: auto;
     }
 
     .val-link:hover {

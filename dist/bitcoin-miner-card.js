@@ -270,6 +270,7 @@ const Vr={attribute:!0,type:String,converter:x,reflect:!1,hasChanged:_},Hr=(t=Vr
 
     .val-link {
       cursor: pointer;
+      pointer-events: auto;
     }
 
     .val-link:hover {

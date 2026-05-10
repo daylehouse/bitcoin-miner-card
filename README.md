@@ -112,11 +112,7 @@ If this card saved you time, made your dashboard look sick, or your miner just h
 
 **Bitcoin:** `bc1qqa5weng9wh682vcas6a8c8jqw43t4hnt8f7ks9`
 
-<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=bc1qqa5weng9wh682vcas6a8c8jqw43t4hnt8f7ks9" alt="Bitcoin QR code" width="150">
-
 **Bitcoin Cash:** `bitcoincash:qzcv0zwwguz0z9j0v8nd8yp4rxuqpadtegmr09tmer`
-
-<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=bitcoincash%3Aqzcv0zwwguz0z9j0v8nd8yp4rxuqpadtegmr09tmer" alt="Bitcoin Cash QR code" width="150">
 
 ```
   ⣿⣿⣿⣿⣿ THANK YOU FOR PLAYING ⣿⣿⣿⣿⣿

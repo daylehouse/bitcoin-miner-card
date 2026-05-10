@@ -500,13 +500,13 @@ const Vr={attribute:!0,type:String,converter:x,reflect:!1,hasChanged:_},Hr=(t=Vr
       }
 
       .fan-icon {
-        width: clamp(1.07rem, 3.73cqw, 1.6rem);
-        height: clamp(1.07rem, 3.73cqw, 1.6rem);
+        width: clamp(0.96rem, 3.36cqw, 1.44rem);
+        height: clamp(0.96rem, 3.36cqw, 1.44rem);
         margin-top: -0.08rem;
       }
 
       .fan-value {
-        font-size: clamp(1.07rem, 3.73cqw, 1.6rem);
+        font-size: clamp(0.83rem, 2.86cqw, 1.23rem);
       }
 
       .pool-menu {

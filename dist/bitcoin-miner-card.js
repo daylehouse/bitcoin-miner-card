@@ -587,7 +587,7 @@ const Vr={attribute:!0,type:String,converter:x,reflect:!1,hasChanged:_},Hr=(t=Vr
       .sun-ticker {
         left: 5.75%;
         top: 87.4%;
-        width: 52.25%;
+        width: 51.25%;
         padding: 0.14rem 0;
       }
 

@@ -1341,17 +1341,17 @@ export class BitcoinMinerCard extends LitElement {
       }
 
       .diff-rotator {
-        left: 66%;
+        left: 64%;
         top: 26%;
         width: 34%;
       }
 
       .diff-label {
-        font-size: clamp(0.53rem, 1.84cqw, 0.86rem);
+        font-size: clamp(0.6rem, 2.06cqw, 0.96rem);
       }
 
       .diff-value {
-        font-size: clamp(0.83rem, 2.6cqw, 1.4rem);
+        font-size: clamp(0.92rem, 2.9cqw, 1.54rem);
       }
 
       .sun-ticker {

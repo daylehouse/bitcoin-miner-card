@@ -1254,7 +1254,7 @@ export class BitcoinMinerCard extends LitElement {
       .sun-ticker-track {
         gap: 2.5rem;
         padding-right: 2.5rem;
-        font-size: clamp(0.83rem, 2.86cqw, 1.23rem);
+          font-size: clamp(0.415rem, 1.43cqw, 0.615rem);
       }
 
       .overheat-indicator {

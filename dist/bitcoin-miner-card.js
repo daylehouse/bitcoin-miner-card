@@ -594,7 +594,7 @@ const Vr={attribute:!0,type:String,converter:x,reflect:!1,hasChanged:_},Hr=(t=Vr
       .sun-ticker-track {
         gap: 2.5rem;
         padding-right: 2.5rem;
-        font-size: clamp(0.519rem, 1.788cqw, 0.769rem);
+        font-size: 0.52rem;
       }
 
       .overheat-indicator {

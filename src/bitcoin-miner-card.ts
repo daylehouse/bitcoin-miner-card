@@ -1117,6 +1117,7 @@ export class BitcoinMinerCard extends LitElement {
 
     @media (max-width: 540px) {
       :host {
+        --bm-fan-left: 71.5%;
         --bm-gear-left: 93%;
         --bm-gear-top: 12.8%;
       }

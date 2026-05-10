@@ -491,6 +491,7 @@ const Vr={attribute:!0,type:String,converter:x,reflect:!1,hasChanged:_},Hr=(t=Vr
 
     @media (max-width: 540px) {
       :host {
+        --bm-fan-left: 71.5%;
         --bm-gear-left: 93%;
         --bm-gear-top: 12.8%;
       }

@@ -262,6 +262,7 @@ const Vr={attribute:!0,type:String,converter:x,reflect:!1,hasChanged:_},Hr=(t=Vr
     }
 
     .fan-gear-button {
+      all: unset;
       position: absolute;
       left: var(--bm-gear-left);
       top: var(--bm-gear-top);
@@ -273,11 +274,15 @@ const Vr={attribute:!0,type:String,converter:x,reflect:!1,hasChanged:_},Hr=(t=Vr
       border: none !important;
       border-radius: 0;
       background: none !important;
+      background-color: transparent !important;
+      background-image: none !important;
       appearance: none;
       -webkit-appearance: none;
       box-shadow: none !important;
       outline: none;
       color: #9ffbff;
+      font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", "Apple Symbols", sans-serif;
+      font-variant-emoji: text;
       font-size: clamp(2.23rem, 6.95cqw, 3.82rem);
       line-height: 1;
       cursor: pointer;

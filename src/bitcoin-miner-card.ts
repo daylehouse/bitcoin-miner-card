@@ -821,6 +821,8 @@ export class BitcoinMinerCard extends LitElement {
       --bm-power-top: 86.5%;
       display: block;
       font-family: var(--bm-font-stack) !important;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
     }
 
     :host *,
@@ -1245,7 +1247,7 @@ export class BitcoinMinerCard extends LitElement {
       }
 
       .sun-ticker {
-        left: 5.75%;
+        left: 5.1%;
         top: 87.4%;
         width: 51.25%;
         padding: 0.14rem 0;
@@ -1254,7 +1256,10 @@ export class BitcoinMinerCard extends LitElement {
       .sun-ticker-track {
         gap: 2.5rem;
         padding-right: 2.5rem;
-        font-size: 0.52rem;
+        font-family: var(--bm-font-stack) !important;
+        font-size: clamp(0.83rem, 2.86cqw, 1.23rem) !important;
+        line-height: 1;
+        font-variant-ligatures: none;
       }
 
       .overheat-indicator {

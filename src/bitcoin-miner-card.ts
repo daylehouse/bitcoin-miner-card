@@ -71,6 +71,10 @@ interface BitcoinMinerCardConfig {
   overheat_entity?: string;
   fan_entity?: string;
   mining_pool_select_entity?: string;
+  pool_url_entity?: string;
+  pool_port_entity?: string;
+  shares_accepted_entity?: string;
+  shares_rejected_entity?: string;
   power_entity?: string;
   model_entity?: string;
   overheat_threshold?: number;
@@ -159,6 +163,10 @@ export class BitcoinMinerCard extends LitElement {
         { name: "overheat_entity", selector: { entity: {} } },
         { name: "fan_entity", selector: { entity: {} } },
         { name: "mining_pool_select_entity", selector: { entity: {} } },
+        { name: "pool_url_entity", selector: { entity: {} } },
+        { name: "pool_port_entity", selector: { entity: {} } },
+        { name: "shares_accepted_entity", selector: { entity: {} } },
+        { name: "shares_rejected_entity", selector: { entity: {} } },
         {
           name: "chart_span_minutes",
           selector: {
@@ -192,6 +200,14 @@ export class BitcoinMinerCard extends LitElement {
             return "Fan Entity";
           case "mining_pool_select_entity":
             return "Mining Pool Select Entity";
+          case "pool_url_entity":
+            return "Pool URL Entity";
+          case "pool_port_entity":
+            return "Pool Port Entity";
+          case "shares_accepted_entity":
+            return "Shares Accepted Entity";
+          case "shares_rejected_entity":
+            return "Shares Rejected Entity";
           case "chart_span_minutes":
             return "Chart Time Span";
           case "power_entity":
@@ -214,6 +230,14 @@ export class BitcoinMinerCard extends LitElement {
             return "Fan speed sensor shown as percent.";
           case "mining_pool_select_entity":
             return "Home Assistant select entity used by the popup menu for pool selection.";
+          case "pool_url_entity":
+            return "Entity shown in ticker as pool URL.";
+          case "pool_port_entity":
+            return "Entity shown in ticker as pool port.";
+          case "shares_accepted_entity":
+            return "Entity shown in ticker as accepted shares.";
+          case "shares_rejected_entity":
+            return "Entity shown in ticker as rejected shares.";
           case "chart_span_minutes":
             return "Time span of historical data to display in the chart.";
           default:
@@ -270,6 +294,10 @@ export class BitcoinMinerCard extends LitElement {
     const minerName = this.normalizeForDisplay(minerNameState.value);
     const overheatState = this.readState(this.config.overheat_entity, "");
     const fan = this.readState(this.config.fan_entity, "%");
+    const poolUrl = this.readState(this.config.pool_url_entity, "");
+    const poolPort = this.readState(this.config.pool_port_entity, "");
+    const sharesAccepted = this.readState(this.config.shares_accepted_entity, "");
+    const sharesRejected = this.readState(this.config.shares_rejected_entity, "");
 
     const threshold = this.config.overheat_threshold ?? 85;
     const numericTemp = this.parseNumericState(temperature.value);
@@ -285,6 +313,12 @@ export class BitcoinMinerCard extends LitElement {
     const miningPools = this.getMiningPoolOptionsFromSelectEntity();
     const hasMiningPools = miningPools.length > 0;
     const activeMiningPool = this.getActiveMiningPool(miningPools);
+    const tickerText = [
+      `POOL URL: ${this.normalizeForDisplay(poolUrl.value)}`,
+      `POOL PORT: ${this.normalizeForDisplay(poolPort.value)}`,
+      `SHARES ACCEPTED: ${this.normalizeForDisplay(sharesAccepted.value)}`,
+      `SHARES REJECTED: ${this.normalizeForDisplay(sharesRejected.value)}`
+    ].join("  |  ");
 
     return html`
       <ha-card>
@@ -315,6 +349,12 @@ export class BitcoinMinerCard extends LitElement {
           >
             ⚙︎
           </button>
+          <div class="sun-ticker" aria-label="Mining pool stats ticker">
+            <div class="sun-ticker-track">
+              <span>${tickerText}</span>
+              <span aria-hidden="true">${tickerText}</span>
+            </div>
+          </div>
           ${this.isPoolMenuOpen
             ? html`<button
                 class="pool-menu-backdrop"
@@ -769,7 +809,7 @@ export class BitcoinMinerCard extends LitElement {
       --bm-fan-left: 74%;
       --bm-gear-top: 12.5%;
       --bm-gear-left: 92%;
-      --bm-hashrate-left: 9%;
+      --bm-hashrate-left: 5.75%;
       --bm-hashrate-top: 75.65%;
       --bm-hashrate-width: 69%;
       --bm-hashrate-value-width: 100%;
@@ -921,6 +961,42 @@ export class BitcoinMinerCard extends LitElement {
     .fan-gear-button:hover {
       opacity: 0.86;
       transform: translate(-50%, -50%) scale(1.05);
+    }
+
+    .sun-ticker {
+      position: absolute;
+      left: 5.75%;
+      top: 86.8%;
+      width: 52.25%;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 12;
+      color: #15ff00;
+      border-top: 1px solid rgba(21, 255, 0, 0.28);
+      border-bottom: 1px solid rgba(21, 255, 0, 0.18);
+      padding: 0.2rem 0;
+      background: linear-gradient(
+        to right,
+        rgba(6, 12, 28, 0.45) 0%,
+        rgba(6, 12, 28, 0.12) 8%,
+        rgba(6, 12, 28, 0.12) 92%,
+        rgba(6, 12, 28, 0.45) 100%
+      );
+    }
+
+    .sun-ticker-track {
+      width: max-content;
+      display: inline-flex;
+      align-items: center;
+      gap: 3.6rem;
+      white-space: nowrap;
+      font-size: clamp(1.01rem, 3.19cqw, 1.85rem);
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      animation: sunTickerScroll 18s linear infinite;
+      padding-right: 3.6rem;
+      text-shadow: none;
     }
 
     .pool-menu-backdrop {
@@ -1120,6 +1196,16 @@ export class BitcoinMinerCard extends LitElement {
       }
     }
 
+    @keyframes sunTickerScroll {
+      from {
+        transform: translateX(0);
+      }
+
+      to {
+        transform: translateX(-50%);
+      }
+    }
+
     @media (max-width: 540px) {
       :host {
         --bm-fan-left: 71.5%;
@@ -1158,6 +1244,19 @@ export class BitcoinMinerCard extends LitElement {
         -webkit-tap-highlight-color: transparent;
       }
 
+      .sun-ticker {
+        left: 5.75%;
+        top: 87.4%;
+        width: 51.25%;
+        padding: 0.14rem 0;
+      }
+
+      .sun-ticker-track {
+        gap: 2.5rem;
+        padding-right: 2.5rem;
+        font-size: clamp(0.83rem, 2.86cqw, 1.23rem);
+      }
+
       .overheat-indicator {
         left: 81.3%;
         top: 37%;
@@ -1169,7 +1268,7 @@ export class BitcoinMinerCard extends LitElement {
       }
 
       .hashrate-row {
-        left: 14.5%;
+        left: 5.75%;
         right: auto;
         top: 78.8%;
         width: 70%;

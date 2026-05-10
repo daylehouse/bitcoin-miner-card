@@ -806,7 +806,7 @@ export class BitcoinMinerCard extends LitElement {
       --bm-title-top: 11%;
       --bm-title-width: 47%;
       --bm-fan-top: 12.5%;
-      --bm-fan-left: 74%;
+      --bm-fan-left: 73%;
       --bm-gear-top: 12.5%;
       --bm-gear-left: 92%;
       --bm-hashrate-left: 5.75%;
@@ -884,10 +884,10 @@ export class BitcoinMinerCard extends LitElement {
       position: absolute;
       left: var(--bm-fan-left);
       top: var(--bm-fan-top);
-      transform: translate(-50%, -50%);
+      transform: translate(0, -50%);
       display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0;
       color: #9ffbff;
       pointer-events: auto;
       max-width: 24%;
@@ -917,6 +917,8 @@ export class BitcoinMinerCard extends LitElement {
       animation: fanSpin 1s linear infinite;
       flex: 0 0 auto;
       margin-top: -0.15rem;
+      margin-right: 0.5rem;
+      margin-left: calc(-1 * (clamp(0.99rem, 3.28cqw, 1.84rem) + 0.5rem));
     }
 
     .fan-value {
@@ -1216,13 +1218,15 @@ export class BitcoinMinerCard extends LitElement {
       }
 
       .fan-indicator {
-        gap: 0.28rem;
+        gap: 0;
       }
 
       .fan-icon {
         width: clamp(0.86rem, 3.02cqw, 1.3rem);
         height: clamp(0.86rem, 3.02cqw, 1.3rem);
         margin-top: -0.08rem;
+        margin-right: 0.28rem;
+        margin-left: calc(-1 * (clamp(0.86rem, 3.02cqw, 1.3rem) + 0.28rem));
       }
 
       .fan-value {

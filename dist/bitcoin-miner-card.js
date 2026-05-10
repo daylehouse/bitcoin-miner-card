@@ -500,8 +500,8 @@ const Vr={attribute:!0,type:String,converter:x,reflect:!1,hasChanged:_},Hr=(t=Vr
       }
 
       .fan-icon {
-        width: clamp(0.96rem, 3.36cqw, 1.44rem);
-        height: clamp(0.96rem, 3.36cqw, 1.44rem);
+        width: clamp(0.86rem, 3.02cqw, 1.3rem);
+        height: clamp(0.86rem, 3.02cqw, 1.3rem);
         margin-top: -0.08rem;
       }
 

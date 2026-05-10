@@ -112,7 +112,7 @@ If this card saved you time, made your dashboard look sick, or your miner just h
 
 **Bitcoin:** `bc1qqa5weng9wh682vcas6a8c8jqw43t4hnt8f7ks9`
 
-**Bitcoin Cash:** `bitcoincash:qzcv0zwwguz0z9j0v8nd8yp4rxuqpadtegmr09tmer`
+**Bitcoin Cash:** `qzcv0zwwguz0z9j0v8nd8yp4rxuqpadtegmr09tmer`
 
 ```
   ⣿⣿⣿⣿⣿ THANK YOU FOR PLAYING ⣿⣿⣿⣿⣿

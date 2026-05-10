@@ -77,6 +77,8 @@ interface BitcoinMinerCardConfig {
   shares_rejected_entity?: string;
   power_entity?: string;
   model_entity?: string;
+  all_time_best_difficulty_entity?: string;
+  session_best_difficulty_entity?: string;
   overheat_threshold?: number;
   chart_span_minutes?: number;
 }
@@ -183,6 +185,8 @@ export class BitcoinMinerCard extends LitElement {
         },
         { name: "power_entity", selector: { entity: {} } },
         { name: "model_entity", selector: { entity: {} } },
+        { name: "all_time_best_difficulty_entity", selector: { entity: {} } },
+        { name: "session_best_difficulty_entity", selector: { entity: {} } },
       ],
       computeLabel: (schema) => {
         switch (schema.name) {
@@ -214,6 +218,10 @@ export class BitcoinMinerCard extends LitElement {
             return "Power Entity";
           case "model_entity":
             return "Model Entity";
+          case "all_time_best_difficulty_entity":
+            return "All Time Best Difficulty Entity";
+          case "session_best_difficulty_entity":
+            return "Session Best Difficulty Entity";
           default:
             return undefined;
         }
@@ -240,6 +248,10 @@ export class BitcoinMinerCard extends LitElement {
             return "Entity shown in ticker as rejected shares.";
           case "chart_span_minutes":
             return "Time span of historical data to display in the chart.";
+          case "all_time_best_difficulty_entity":
+            return "All-time best mining difficulty score.";
+          case "session_best_difficulty_entity":
+            return "Best difficulty score for the current session.";
           default:
             return undefined;
         }
@@ -298,6 +310,9 @@ export class BitcoinMinerCard extends LitElement {
     const poolPort = this.readState(this.config.pool_port_entity, "");
     const sharesAccepted = this.readState(this.config.shares_accepted_entity, "");
     const sharesRejected = this.readState(this.config.shares_rejected_entity, "");
+    const allTimeBestDiff = this.readState(this.config.all_time_best_difficulty_entity, "");
+    const sessionBestDiff = this.readState(this.config.session_best_difficulty_entity, "");
+    const hasDiffStats = !!(this.config.all_time_best_difficulty_entity || this.config.session_best_difficulty_entity);
 
     const threshold = this.config.overheat_threshold ?? 85;
     const numericTemp = this.parseNumericState(temperature.value);
@@ -349,6 +364,19 @@ export class BitcoinMinerCard extends LitElement {
           >
             ⚙︎
           </button>
+          ${hasDiffStats && !isOverheat ? html`
+          <div class="diff-rotator" aria-live="polite" aria-label="Best difficulty scores">
+            ${this.config.all_time_best_difficulty_entity ? html`
+            <div class="diff-slide diff-slide--1">
+              <span class="diff-label diff-label--blue">ALL TIME BEST</span>
+              <span class="diff-value">${this.normalizeForDisplay(allTimeBestDiff.value)}</span>
+            </div>` : nothing}
+            ${this.config.session_best_difficulty_entity ? html`
+            <div class="diff-slide diff-slide--2">
+              <span class="diff-label">SESSION BEST</span>
+              <span class="diff-value">${this.normalizeForDisplay(sessionBestDiff.value)}</span>
+            </div>` : nothing}
+          </div>` : nothing}
           <div class="sun-ticker" aria-label="Mining pool stats ticker">
             <div class="sun-ticker-track">
               <span>${tickerText}</span>
@@ -852,14 +880,15 @@ export class BitcoinMinerCard extends LitElement {
 
     .overheat-indicator {
       position: absolute;
-      left: 80.8%;
-      top: 36.5%;
-      width: 40.24%;
+      left: 82.3%;
+      top: 31.5%;
+      width: 42.25%;
       height: auto;
       transform: translate(-50%, -50%);
       z-index: 5;
       pointer-events: none;
-      filter: drop-shadow(0 0 10px rgba(255, 80, 54, 0.55));
+      filter: drop-shadow(0 0 10px rgba(255, 80, 54, 0.55))
+        drop-shadow(0 0 14px rgba(110, 255, 255, 0.72));
       animation: overheatPulse 0.9s ease-in-out infinite;
     }
 
@@ -1200,6 +1229,67 @@ export class BitcoinMinerCard extends LitElement {
       }
     }
 
+    .diff-rotator {
+      position: absolute;
+      left: 66%;
+      top: 26%;
+      width: 34%;
+      text-align: center;
+      pointer-events: none;
+      z-index: 11;
+    }
+
+    .diff-slide {
+      position: absolute;
+      left: 0;
+      right: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.18em;
+      opacity: 0;
+    }
+
+    .diff-slide--1 {
+      animation: diffFade 20s 0s ease-in-out infinite;
+    }
+
+    .diff-slide--2 {
+      animation: diffFade 20s 10s ease-in-out infinite;
+    }
+
+    .diff-label {
+      font-size: clamp(0.63rem, 1.98cqw, 1.15rem);
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      color: #15ff00;
+      text-transform: uppercase;
+      text-shadow: 0 0 8px rgba(21, 255, 0, 0.55);
+      line-height: 1;
+    }
+
+    .diff-label--blue {
+      color: #9ffbff;
+      text-shadow: 0 0 8px rgba(159, 251, 255, 0.55);
+    }
+
+    .diff-value {
+      font-size: clamp(1.05rem, 3.28cqw, 1.9rem);
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 0.06em;
+      text-shadow: 0 0 12px rgba(21, 255, 0, 0.4);
+      line-height: 1;
+    }
+
+    @keyframes diffFade {
+      0%   { opacity: 0; }
+      4%   { opacity: 1; }
+      26%  { opacity: 1; }
+      30%  { opacity: 0; }
+      100% { opacity: 0; }
+    }
+
     @keyframes sunTickerScroll {
       from {
         transform: translateX(0);
@@ -1250,6 +1340,20 @@ export class BitcoinMinerCard extends LitElement {
         -webkit-tap-highlight-color: transparent;
       }
 
+      .diff-rotator {
+        left: 66%;
+        top: 26%;
+        width: 34%;
+      }
+
+      .diff-label {
+        font-size: clamp(0.53rem, 1.84cqw, 0.86rem);
+      }
+
+      .diff-value {
+        font-size: clamp(0.83rem, 2.6cqw, 1.4rem);
+      }
+
       .sun-ticker {
         left: 5.1%;
         top: 87.4%;
@@ -1267,9 +1371,9 @@ export class BitcoinMinerCard extends LitElement {
       }
 
       .overheat-indicator {
-        left: 81.3%;
-        top: 37%;
-        width: 47.85%;
+        left: 82.8%;
+        top: 32%;
+        width: 50.24%;
       }
 
       .title-value {

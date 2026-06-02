@@ -513,6 +513,7 @@ export class BitcoinMinerCard extends LitElement {
         start_time: start.toISOString(),
         end_time: end.toISOString(),
         entity_ids: [hashrateEntity, tempEntity, ...(vrTempEntity ? [vrTempEntity] : [])],
+        include_start_time_state: true,
         minimal_response: true,
         no_attributes: true
       });
@@ -528,7 +529,9 @@ export class BitcoinMinerCard extends LitElement {
         hashratePoints,
         tempPoints,
         vrTempPoints,
-        vrTempEntity
+        vrTempEntity,
+        start.getTime(),
+        end.getTime()
       );
 
       this.renderChart();
@@ -570,42 +573,43 @@ export class BitcoinMinerCard extends LitElement {
     hashratePoints: HistoryPoint[],
     tempPoints: HistoryPoint[],
     vrTempPoints: HistoryPoint[],
-    vrTempEntity?: string
+    vrTempEntity?: string,
+    startTimeMs?: number,
+    endTimeMs?: number
   ): AlignedChartData {
-    type ChartBucket = {
-      hashrate?: number;
-      temp?: number;
-      vrTemp?: number;
-    };
+    const hashrateMap = this.toBucketedSeriesMap(hashratePoints);
+    const tempMap = this.toBucketedSeriesMap(tempPoints);
+    const vrTempMap = vrTempEntity ? this.toBucketedSeriesMap(vrTempPoints) : new Map<number, number>();
 
-    const buckets = new Map<number, ChartBucket>();
+    const inferRange = (): { startBucket: number; endBucket: number } | null => {
+      const explicitStart =
+        typeof startTimeMs === "number" && Number.isFinite(startTimeMs)
+          ? Math.floor(startTimeMs / chartHistoryBucketMs) * chartHistoryBucketMs
+          : null;
+      const explicitEnd =
+        typeof endTimeMs === "number" && Number.isFinite(endTimeMs)
+          ? Math.floor(endTimeMs / chartHistoryBucketMs) * chartHistoryBucketMs
+          : null;
 
-    const addSeries = (
-      points: HistoryPoint[],
-      seriesKey: keyof ChartBucket
-    ): void => {
-      for (const point of points) {
-        const timestampMs = this.getHistoryTimestampMs(point);
-        const numericValue = this.parseNumericState(point.s ?? point.state ?? "");
-
-        if (timestampMs === null || numericValue === null) {
-          continue;
-        }
-
-        const bucketMs = Math.floor(timestampMs / chartHistoryBucketMs) * chartHistoryBucketMs;
-        const bucket = buckets.get(bucketMs) ?? {};
-        bucket[seriesKey] = numericValue;
-        buckets.set(bucketMs, bucket);
+      if (explicitStart !== null && explicitEnd !== null && explicitEnd >= explicitStart) {
+        return { startBucket: explicitStart, endBucket: explicitEnd };
       }
+
+      const keys = [
+        ...hashrateMap.keys(),
+        ...tempMap.keys(),
+        ...vrTempMap.keys()
+      ];
+      if (keys.length === 0) {
+        return null;
+      }
+
+      const startBucket = Math.min(...keys);
+      const endBucket = Math.max(...keys);
+      return { startBucket, endBucket };
     };
 
-    addSeries(hashratePoints, "hashrate");
-    addSeries(tempPoints, "temp");
-    if (vrTempEntity) {
-      addSeries(vrTempPoints, "vrTemp");
-    }
-
-    const sortedBuckets = Array.from(buckets.keys()).sort((left, right) => left - right);
+    const bucketRange = inferRange();
     const chartData: AlignedChartData = {
       labels: [],
       hashrate: [],
@@ -613,21 +617,56 @@ export class BitcoinMinerCard extends LitElement {
       vrTemp: []
     };
 
-    for (const bucketMs of sortedBuckets) {
-      const bucket = buckets.get(bucketMs);
-      if (!bucket) {
-        continue;
+    if (!bucketRange) {
+      return chartData;
+    }
+
+    let lastHashrate: number | null = null;
+    let lastTemp: number | null = null;
+    let lastVrTemp: number | null = null;
+
+    for (
+      let bucketMs = bucketRange.startBucket;
+      bucketMs <= bucketRange.endBucket;
+      bucketMs += chartHistoryBucketMs
+    ) {
+      if (hashrateMap.has(bucketMs)) {
+        lastHashrate = hashrateMap.get(bucketMs) ?? null;
+      }
+      if (tempMap.has(bucketMs)) {
+        lastTemp = tempMap.get(bucketMs) ?? null;
+      }
+      if (vrTempEntity && vrTempMap.has(bucketMs)) {
+        lastVrTemp = vrTempMap.get(bucketMs) ?? null;
       }
 
       chartData.labels.push(
         new Date(bucketMs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
       );
-      chartData.hashrate.push(bucket.hashrate ?? null);
-      chartData.temp.push(bucket.temp ?? null);
-      chartData.vrTemp.push(vrTempEntity ? bucket.vrTemp ?? null : null);
+      chartData.hashrate.push(lastHashrate);
+      chartData.temp.push(lastTemp);
+      chartData.vrTemp.push(vrTempEntity ? lastVrTemp : null);
     }
 
     return chartData;
+  }
+
+  private toBucketedSeriesMap(points: HistoryPoint[]): Map<number, number> {
+    const seriesMap = new Map<number, number>();
+
+    for (const point of points) {
+      const timestampMs = this.getHistoryTimestampMs(point);
+      const numericValue = this.parseNumericState(point.s ?? point.state ?? "");
+
+      if (timestampMs === null || numericValue === null) {
+        continue;
+      }
+
+      const bucketMs = Math.floor(timestampMs / chartHistoryBucketMs) * chartHistoryBucketMs;
+      seriesMap.set(bucketMs, numericValue);
+    }
+
+    return seriesMap;
   }
 
   private getHistoryTimestampMs(point: HistoryPoint): number | null {
@@ -640,18 +679,32 @@ export class BitcoinMinerCard extends LitElement {
     return Number.isFinite(timestampMs) ? timestampMs : null;
   }
 
-  private getSuggestedAxisMax(values: Array<number | null>): number | undefined {
+  private getSuggestedAxisBounds(
+    values: Array<number | null>,
+    clampMinToZero = false
+  ): { min?: number; max?: number } {
     const finiteValues = values.filter((value): value is number =>
       typeof value === "number" && Number.isFinite(value)
     );
 
     if (finiteValues.length === 0) {
-      return undefined;
+      return {};
     }
 
+    const minValue = Math.min(...finiteValues);
     const maxValue = Math.max(...finiteValues);
-    const headroom = Math.max(Math.abs(maxValue) * 0.12, 1);
-    return maxValue + headroom;
+    const range = maxValue - minValue;
+    const normalizedRange = Math.max(range, Math.abs(maxValue) * 0.02, 1);
+    const halfWindow = (normalizedRange * 1.45) / 2;
+    const center = (minValue + maxValue) / 2;
+
+    const min = clampMinToZero ? Math.max(0, center - halfWindow) : center - halfWindow;
+    const max = center + halfWindow;
+
+    return {
+      min,
+      max
+    };
   }
 
   private renderChart(): void {
@@ -668,8 +721,8 @@ export class BitcoinMinerCard extends LitElement {
     const spanMinutes = this.config?.chart_span_minutes ?? 60;
     const hasVrTemp = Boolean(this.config?.vr_temp_entity);
     const expectedDatasetCount = hasVrTemp ? 3 : 2;
-    const hashrateSuggestedMax = this.getSuggestedAxisMax(this.chartData.hashrate);
-    const tempSuggestedMax = this.getSuggestedAxisMax([
+    const hashrateAxisBounds = this.getSuggestedAxisBounds(this.chartData.hashrate, true);
+    const tempAxisBounds = this.getSuggestedAxisBounds([
       ...this.chartData.temp,
       ...(hasVrTemp ? this.chartData.vrTemp : [])
     ]);
@@ -762,7 +815,8 @@ export class BitcoinMinerCard extends LitElement {
             type: "linear",
             display: true,
             position: "left",
-            suggestedMax: hashrateSuggestedMax,
+            min: hashrateAxisBounds.min,
+            max: hashrateAxisBounds.max,
             ticks: {
               color: "#fff",
               font: { size: 18, family: chartFontFamily },
@@ -775,7 +829,8 @@ export class BitcoinMinerCard extends LitElement {
             type: "linear",
             display: true,
             position: "right",
-            suggestedMax: tempSuggestedMax,
+            min: tempAxisBounds.min,
+            max: tempAxisBounds.max,
             ticks: {
               color: "#fff",
               font: { size: 18, family: chartFontFamily },

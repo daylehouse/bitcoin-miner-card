@@ -12,6 +12,7 @@ const overheatImageUrl = new URL("overheat.png", import.meta.url).toString();
 const globalFontStyleId = "bitcoin-miner-card-fonts";
 const chartUpdateIntervalMs = 60000;
 const chartHistoryThrottleMs = 60000;
+const chartHistoryBucketMs = 60000;
 
 function ensureAlienFontsRegistered(): void {
   if (typeof document === "undefined") {
@@ -68,6 +69,7 @@ interface BitcoinMinerCardConfig {
   miner_name_entity?: string;
   hashrate_entity?: string;
   temperature_entity?: string;
+  vr_temp_entity?: string;
   overheat_entity?: string;
   fan_entity?: string;
   mining_pool_select_entity?: string;
@@ -110,6 +112,13 @@ interface HistoryPoint {
   state?: string;
 }
 
+interface AlignedChartData {
+  labels: string[];
+  hashrate: Array<number | null>;
+  temp: Array<number | null>;
+  vrTemp: Array<number | null>;
+}
+
 @customElement("bitcoin-miner-card")
 export class BitcoinMinerCard extends LitElement {
   @property({ attribute: false }) public hass?: HomeAssistant;
@@ -118,10 +127,11 @@ export class BitcoinMinerCard extends LitElement {
 
   private chart: Chart | null = null;
 
-  private chartData: { labels: string[]; hashrate: number[]; temp: number[] } = {
+  private chartData: AlignedChartData = {
     labels: [],
     hashrate: [],
-    temp: []
+    temp: [],
+    vrTemp: []
   };
 
   private chartUpdateInterval: number | null = null;
@@ -162,6 +172,7 @@ export class BitcoinMinerCard extends LitElement {
         { name: "miner_name_entity", selector: { entity: {} } },
         { name: "hashrate_entity", selector: { entity: {} } },
         { name: "temperature_entity", selector: { entity: {} } },
+        { name: "vr_temp_entity", selector: { entity: {} } },
         { name: "overheat_entity", selector: { entity: {} } },
         { name: "fan_entity", selector: { entity: {} } },
         { name: "mining_pool_select_entity", selector: { entity: {} } },
@@ -198,6 +209,8 @@ export class BitcoinMinerCard extends LitElement {
             return "Hashrate Entity";
           case "temperature_entity":
             return "Temperature Entity";
+          case "vr_temp_entity":
+            return "VR Temp Entity";
           case "overheat_entity":
             return "Overheat Entity (0/1)";
           case "fan_entity":
@@ -234,6 +247,8 @@ export class BitcoinMinerCard extends LitElement {
             return "Sensor used for the IP address line.";
           case "overheat_entity":
             return "Binary overheat sensor: 0 = normal, 1 = overheat.";
+          case "vr_temp_entity":
+            return "VR temperature sensor shown in the chart.";
           case "fan_entity":
             return "Fan speed sensor shown as percent.";
           case "mining_pool_select_entity":
@@ -463,6 +478,7 @@ export class BitcoinMinerCard extends LitElement {
 
     const hashrateEntity = this.config.hashrate_entity;
     const tempEntity = this.config.temperature_entity;
+    const vrTempEntity = this.config.vr_temp_entity;
     if (!hashrateEntity || !tempEntity) {
       return;
     }
@@ -482,54 +498,24 @@ export class BitcoinMinerCard extends LitElement {
         type: "history/history_during_period",
         start_time: start.toISOString(),
         end_time: end.toISOString(),
-        entity_ids: [hashrateEntity, tempEntity],
+        entity_ids: [hashrateEntity, tempEntity, ...(vrTempEntity ? [vrTempEntity] : [])],
         minimal_response: true,
         no_attributes: true
       });
 
-      const { hashratePoints, tempPoints } = this.extractHistoryPoints(
+      const { hashratePoints, tempPoints, vrTempPoints } = this.extractHistoryPoints(
         historyResult,
         hashrateEntity,
-        tempEntity
+        tempEntity,
+        vrTempEntity
       );
 
-      this.chartData = { labels: [], hashrate: [], temp: [] };
-      const len = Math.min(hashratePoints.length, tempPoints.length);
-
-      for (let i = 0; i < len; i += 1) {
-        const hashPoint = hashratePoints[i];
-        const tempPoint = tempPoints[i];
-
-        const rawTimestamp = hashPoint.lu ?? tempPoint.lu ?? hashPoint.last_updated_ts ?? tempPoint.last_updated_ts;
-        const timestampMs = typeof rawTimestamp === "number" ? rawTimestamp * 1000 : NaN;
-        const ts = new Date(timestampMs);
-
-        const label = Number.isFinite(ts.getTime())
-          ? ts.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-          : `${i}`;
-
-        const hashValue = parseFloat(hashPoint.s ?? hashPoint.state ?? "NaN");
-        const tempValue = parseFloat(tempPoint.s ?? tempPoint.state ?? "NaN");
-
-        if (!Number.isNaN(hashValue) && !Number.isNaN(tempValue)) {
-          this.chartData.labels.push(label);
-          this.chartData.hashrate.push(hashValue);
-          this.chartData.temp.push(tempValue);
-        }
-      }
-
-      if (this.chartData.labels.length === 0) {
-        const hashrateState = this.readState(hashrateEntity, "MH/s");
-        const tempState = this.readState(tempEntity, "°C");
-        const hashrateValue = this.parseNumericState(hashrateState.value);
-        const tempValue = this.parseNumericState(tempState.value);
-
-        if (hashrateValue !== null && tempValue !== null) {
-          this.chartData.labels.push("Now");
-          this.chartData.hashrate.push(hashrateValue);
-          this.chartData.temp.push(tempValue);
-        }
-      }
+      this.chartData = this.buildAlignedChartData(
+        hashratePoints,
+        tempPoints,
+        vrTempPoints,
+        vrTempEntity
+      );
 
       this.renderChart();
     } catch (error) {
@@ -541,13 +527,15 @@ export class BitcoinMinerCard extends LitElement {
   private extractHistoryPoints(
     historyResult: unknown,
     hashrateEntity: string,
-    tempEntity: string
-  ): { hashratePoints: HistoryPoint[]; tempPoints: HistoryPoint[] } {
+    tempEntity: string,
+    vrTempEntity?: string
+  ): { hashratePoints: HistoryPoint[]; tempPoints: HistoryPoint[]; vrTempPoints: HistoryPoint[] } {
     if (historyResult && typeof historyResult === "object" && !Array.isArray(historyResult)) {
       const resultMap = historyResult as Record<string, HistoryPoint[]>;
       return {
         hashratePoints: resultMap[hashrateEntity] ?? [],
-        tempPoints: resultMap[tempEntity] ?? []
+        tempPoints: resultMap[tempEntity] ?? [],
+        vrTempPoints: vrTempEntity ? resultMap[vrTempEntity] ?? [] : []
       };
     }
 
@@ -555,14 +543,91 @@ export class BitcoinMinerCard extends LitElement {
       const entities = historyResult as Array<Array<HistoryPoint & { entity_id?: string }>>;
       const hashratePoints = entities.find((series) => series[0]?.entity_id === hashrateEntity) ?? [];
       const tempPoints = entities.find((series) => series[0]?.entity_id === tempEntity) ?? [];
-      return { hashratePoints, tempPoints };
+      const vrTempPoints = vrTempEntity
+        ? entities.find((series) => series[0]?.entity_id === vrTempEntity) ?? []
+        : [];
+      return { hashratePoints, tempPoints, vrTempPoints };
     }
 
-    return { hashratePoints: [], tempPoints: [] };
+    return { hashratePoints: [], tempPoints: [], vrTempPoints: [] };
+  }
+
+  private buildAlignedChartData(
+    hashratePoints: HistoryPoint[],
+    tempPoints: HistoryPoint[],
+    vrTempPoints: HistoryPoint[],
+    vrTempEntity?: string
+  ): AlignedChartData {
+    type ChartBucket = {
+      hashrate?: number;
+      temp?: number;
+      vrTemp?: number;
+    };
+
+    const buckets = new Map<number, ChartBucket>();
+
+    const addSeries = (
+      points: HistoryPoint[],
+      seriesKey: keyof ChartBucket
+    ): void => {
+      for (const point of points) {
+        const timestampMs = this.getHistoryTimestampMs(point);
+        const numericValue = this.parseNumericState(point.s ?? point.state ?? "");
+
+        if (timestampMs === null || numericValue === null) {
+          continue;
+        }
+
+        const bucketMs = Math.floor(timestampMs / chartHistoryBucketMs) * chartHistoryBucketMs;
+        const bucket = buckets.get(bucketMs) ?? {};
+        bucket[seriesKey] = numericValue;
+        buckets.set(bucketMs, bucket);
+      }
+    };
+
+    addSeries(hashratePoints, "hashrate");
+    addSeries(tempPoints, "temp");
+    if (vrTempEntity) {
+      addSeries(vrTempPoints, "vrTemp");
+    }
+
+    const sortedBuckets = Array.from(buckets.keys()).sort((left, right) => left - right);
+    const chartData: AlignedChartData = {
+      labels: [],
+      hashrate: [],
+      temp: [],
+      vrTemp: []
+    };
+
+    for (const bucketMs of sortedBuckets) {
+      const bucket = buckets.get(bucketMs);
+      if (!bucket) {
+        continue;
+      }
+
+      chartData.labels.push(
+        new Date(bucketMs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      );
+      chartData.hashrate.push(bucket.hashrate ?? null);
+      chartData.temp.push(bucket.temp ?? null);
+      chartData.vrTemp.push(vrTempEntity ? bucket.vrTemp ?? null : null);
+    }
+
+    return chartData;
+  }
+
+  private getHistoryTimestampMs(point: HistoryPoint): number | null {
+    const rawTimestamp = point.lu ?? point.last_updated_ts;
+    if (typeof rawTimestamp !== "number" || !Number.isFinite(rawTimestamp)) {
+      return null;
+    }
+
+    const timestampMs = rawTimestamp * 1000;
+    return Number.isFinite(timestampMs) ? timestampMs : null;
   }
 
   private renderChart(): void {
-    const canvas = this.renderRoot?.querySelector("#miner-graph") as HTMLCanvasElement | null;
+    const canvas = this.shadowRoot?.querySelector("#miner-graph") as HTMLCanvasElement | null;
     if (!canvas) {
       return;
     }
@@ -573,8 +638,15 @@ export class BitcoinMinerCard extends LitElement {
     }
 
     const spanMinutes = this.config?.chart_span_minutes ?? 60;
+    const hasVrTemp = Boolean(this.config?.vr_temp_entity);
+    const expectedDatasetCount = hasVrTemp ? 3 : 2;
 
-    const chartConfig: ChartConfiguration<"line", number[], string> = {
+    if (this.chart && this.chart.data.datasets.length !== expectedDatasetCount) {
+      this.chart.destroy();
+      this.chart = null;
+    }
+
+    const chartConfig: ChartConfiguration<"line", Array<number | null>, string> = {
       type: "line",
       data: {
         labels: this.chartData.labels,
@@ -598,7 +670,21 @@ export class BitcoinMinerCard extends LitElement {
             tension: 0.3,
             pointRadius: 0,
             borderWidth: 2
-          }
+          },
+          ...(hasVrTemp
+            ? [
+                {
+                  label: "VR Temp",
+                  data: this.chartData.vrTemp,
+                  borderColor: "#ffe600",
+                  backgroundColor: "rgba(255,230,0,0.12)",
+                  yAxisID: "y1",
+                  tension: 0.3,
+                  pointRadius: 0,
+                  borderWidth: 2
+                }
+              ]
+            : [])
         ]
       },
       options: {
@@ -642,7 +728,7 @@ export class BitcoinMinerCard extends LitElement {
               color: "#fff",
               font: { size: 18, family: "Bitcoin Miner Alien Local" },
               maxTicksLimit: 3,
-              callback: (tickValue) => Math.round(Number(tickValue)).toString()
+              callback: (tickValue: string | number) => Math.round(Number(tickValue)).toString()
             },
             grid: { color: "rgba(21,255,0,0.08)" }
           },
@@ -654,7 +740,7 @@ export class BitcoinMinerCard extends LitElement {
               color: "#fff",
               font: { size: 18, family: "Bitcoin Miner Alien Local" },
               maxTicksLimit: 3,
-              callback: (tickValue) => Math.round(Number(tickValue)).toString()
+              callback: (tickValue: string | number) => Math.round(Number(tickValue)).toString()
             },
             grid: { color: "rgba(255,47,214,0.08)" }
           }
@@ -670,6 +756,9 @@ export class BitcoinMinerCard extends LitElement {
     this.chart.data.labels = this.chartData.labels;
     this.chart.data.datasets[0].data = this.chartData.hashrate;
     this.chart.data.datasets[1].data = this.chartData.temp;
+    if (hasVrTemp && this.chart.data.datasets[2]) {
+      this.chart.data.datasets[2].data = this.chartData.vrTemp;
+    }
     this.chart.update("none");
   }
 
@@ -782,7 +871,7 @@ export class BitcoinMinerCard extends LitElement {
       });
     }
 
-    this.dispatchEvent(
+    (this as EventTarget).dispatchEvent(
       new CustomEvent("mining-pool-changed", {
         detail: { pool: selectedPool },
         bubbles: true,

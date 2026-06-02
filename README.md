@@ -57,7 +57,8 @@ All entities are optional — only configure what your miner exposes. The card g
 
 | Field | Description |
 |---|---|
-| `title_entity` | Sensor used for the card title |
+| `title_text` | Optional free-text card title (overrides `title_entity` when set) |
+| `title_entity` | Sensor used for the card title when `title_text` is empty |
 | `miner_name_entity` | IP address / hostname (clickable link to miner UI) |
 | `hashrate_entity` | Live hashrate sensor |
 | `temperature_entity` | Temperature sensor |

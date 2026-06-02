@@ -10,6 +10,7 @@ const alienBoldFontUrl = new URL("Alien-Encounters-Bold.ttf", import.meta.url).t
 const backgroundImageUrl = new URL("base-layer.png", import.meta.url).toString();
 const overheatImageUrl = new URL("overheat.png", import.meta.url).toString();
 const globalFontStyleId = "bitcoin-miner-card-fonts";
+const chartFontFamily = '"Bitcoin Miner Alien Local", "Bitcoin Miner Alien", sans-serif';
 const chartUpdateIntervalMs = 60000;
 const chartHistoryThrottleMs = 60000;
 const chartHistoryBucketMs = 60000;
@@ -65,6 +66,7 @@ interface HomeAssistant {
 
 interface BitcoinMinerCardConfig {
   type?: string;
+  title_text?: string;
   title_entity?: string;
   miner_name_entity?: string;
   hashrate_entity?: string;
@@ -140,9 +142,13 @@ export class BitcoinMinerCard extends LitElement {
 
   @state() private isPoolMenuOpen = false;
 
+  private static chartFontDefaultsApplied = false;
+
   public connectedCallback(): void {
     super.connectedCallback();
     ensureAlienFontsRegistered();
+    this.applyChartFontDefaults();
+    void this.rerenderChartWhenFontsReady();
     void this.fetchAndPopulateHistory(true);
     this.startChartUpdater();
   }
@@ -168,6 +174,7 @@ export class BitcoinMinerCard extends LitElement {
   public static getConfigForm(): ConfigForm {
     return {
       schema: [
+        { name: "title_text", selector: { text: {} } },
         { name: "title_entity", selector: { entity: {} } },
         { name: "miner_name_entity", selector: { entity: {} } },
         { name: "hashrate_entity", selector: { entity: {} } },
@@ -201,6 +208,8 @@ export class BitcoinMinerCard extends LitElement {
       ],
       computeLabel: (schema) => {
         switch (schema.name) {
+          case "title_text":
+            return "Title Text";
           case "title_entity":
             return "Title Entity";
           case "miner_name_entity":
@@ -241,8 +250,10 @@ export class BitcoinMinerCard extends LitElement {
       },
       computeHelper: (schema) => {
         switch (schema.name) {
+          case "title_text":
+            return "Optional free-text title. When set, this overrides Title Entity.";
           case "title_entity":
-            return "Sensor used for the title line.";
+            return "Sensor used for the title line when Title Text is empty.";
           case "miner_name_entity":
             return "Sensor used for the IP address line.";
           case "overheat_entity":
@@ -311,8 +322,11 @@ export class BitcoinMinerCard extends LitElement {
       return nothing;
     }
 
+    const configuredTitleText = this.normalizeForDisplay(this.config.title_text);
     const titleState = this.readState(this.config.title_entity, "");
-    const title = this.normalizeForDisplay(titleState.value);
+    const title = configuredTitleText !== "--"
+      ? configuredTitleText
+      : this.normalizeForDisplay(titleState.value);
     const hashrate = this.readState(this.config.hashrate_entity, "MH/s");
     const temperature = this.readState(this.config.temperature_entity, "°C");
     const power = this.readState(this.config.power_entity, "W");
@@ -384,12 +398,12 @@ export class BitcoinMinerCard extends LitElement {
             ${this.config.all_time_best_difficulty_entity ? html`
             <div class="diff-slide diff-slide--1">
               <span class="diff-label diff-label--blue">ALL TIME BEST</span>
-              <span class="diff-value">${this.normalizeForDisplay(allTimeBestDiff.value)}</span>
+              <span class="diff-value">${this.formatCompactNumber(allTimeBestDiff.value)}</span>
             </div>` : nothing}
             ${this.config.session_best_difficulty_entity ? html`
             <div class="diff-slide diff-slide--2">
               <span class="diff-label">SESSION BEST</span>
-              <span class="diff-value">${this.normalizeForDisplay(sessionBestDiff.value)}</span>
+              <span class="diff-value">${this.formatCompactNumber(sessionBestDiff.value)}</span>
             </div>` : nothing}
           </div>` : nothing}
           <div class="sun-ticker" aria-label="Mining pool stats ticker">
@@ -626,6 +640,20 @@ export class BitcoinMinerCard extends LitElement {
     return Number.isFinite(timestampMs) ? timestampMs : null;
   }
 
+  private getSuggestedAxisMax(values: Array<number | null>): number | undefined {
+    const finiteValues = values.filter((value): value is number =>
+      typeof value === "number" && Number.isFinite(value)
+    );
+
+    if (finiteValues.length === 0) {
+      return undefined;
+    }
+
+    const maxValue = Math.max(...finiteValues);
+    const headroom = Math.max(Math.abs(maxValue) * 0.12, 1);
+    return maxValue + headroom;
+  }
+
   private renderChart(): void {
     const canvas = this.shadowRoot?.querySelector("#miner-graph") as HTMLCanvasElement | null;
     if (!canvas) {
@@ -640,6 +668,11 @@ export class BitcoinMinerCard extends LitElement {
     const spanMinutes = this.config?.chart_span_minutes ?? 60;
     const hasVrTemp = Boolean(this.config?.vr_temp_entity);
     const expectedDatasetCount = hasVrTemp ? 3 : 2;
+    const hashrateSuggestedMax = this.getSuggestedAxisMax(this.chartData.hashrate);
+    const tempSuggestedMax = this.getSuggestedAxisMax([
+      ...this.chartData.temp,
+      ...(hasVrTemp ? this.chartData.vrTemp : [])
+    ]);
 
     if (this.chart && this.chart.data.datasets.length !== expectedDatasetCount) {
       this.chart.destroy();
@@ -695,14 +728,19 @@ export class BitcoinMinerCard extends LitElement {
             display: true,
             labels: {
               color: "#ffe9fa",
-              font: { size: 16, family: "Bitcoin Miner Alien Local" },
+              font: { size: 16, family: chartFontFamily },
               boxWidth: 18,
               boxHeight: 6,
               borderRadius: 1,
               usePointStyle: false
             }
           },
-          tooltip: { enabled: true }
+          tooltip: {
+            enabled: true,
+            titleFont: { family: chartFontFamily },
+            bodyFont: { family: chartFontFamily },
+            footerFont: { family: chartFontFamily }
+          }
         },
         scales: {
           x: {
@@ -710,11 +748,11 @@ export class BitcoinMinerCard extends LitElement {
               display: true,
               text: `Last ${spanMinutes} mins`,
               color: "#fff",
-              font: { size: 18, family: "Bitcoin Miner Alien Local" }
+              font: { size: 18, family: chartFontFamily }
             },
             ticks: {
               color: "#fff",
-              font: { size: 18, family: "Bitcoin Miner Alien Local" },
+              font: { size: 18, family: chartFontFamily },
               maxTicksLimit: 3,
               display: false
             },
@@ -724,9 +762,10 @@ export class BitcoinMinerCard extends LitElement {
             type: "linear",
             display: true,
             position: "left",
+            suggestedMax: hashrateSuggestedMax,
             ticks: {
               color: "#fff",
-              font: { size: 18, family: "Bitcoin Miner Alien Local" },
+              font: { size: 18, family: chartFontFamily },
               maxTicksLimit: 3,
               callback: (tickValue: string | number) => Math.round(Number(tickValue)).toString()
             },
@@ -736,9 +775,10 @@ export class BitcoinMinerCard extends LitElement {
             type: "linear",
             display: true,
             position: "right",
+            suggestedMax: tempSuggestedMax,
             ticks: {
               color: "#fff",
-              font: { size: 18, family: "Bitcoin Miner Alien Local" },
+              font: { size: 18, family: chartFontFamily },
               maxTicksLimit: 3,
               callback: (tickValue: string | number) => Math.round(Number(tickValue)).toString()
             },
@@ -760,6 +800,29 @@ export class BitcoinMinerCard extends LitElement {
       this.chart.data.datasets[2].data = this.chartData.vrTemp;
     }
     this.chart.update("none");
+  }
+
+  private applyChartFontDefaults(): void {
+    if (BitcoinMinerCard.chartFontDefaultsApplied) {
+      return;
+    }
+
+    Chart.defaults.font.family = chartFontFamily;
+    BitcoinMinerCard.chartFontDefaultsApplied = true;
+  }
+
+  private async rerenderChartWhenFontsReady(): Promise<void> {
+    if (typeof document === "undefined" || !("fonts" in document)) {
+      return;
+    }
+
+    try {
+      await document.fonts.ready;
+    } catch {
+      return;
+    }
+
+    this.renderChart();
   }
 
   private readState(entityId: string | undefined, fallbackUnit = ""): ReadStateResult {
@@ -801,6 +864,36 @@ export class BitcoinMinerCard extends LitElement {
     }
 
     return text.length > 0 ? text : "--";
+  }
+
+  private formatCompactNumber(value: unknown): string {
+    const normalized = this.normalizeForDisplay(value);
+    if (normalized === "--") {
+      return normalized;
+    }
+
+    const numeric = Number.parseFloat(normalized.replace(/,/g, ""));
+    if (!Number.isFinite(numeric)) {
+      return normalized;
+    }
+
+    const abs = Math.abs(numeric);
+    if (abs >= 1_000_000) {
+      return `${this.toCompactValue(numeric / 1_000_000, 2)}M`;
+    }
+
+    return `${this.toCompactValue(numeric / 1_000, 2)}K`;
+  }
+
+  private toCompactValue(value: number, decimals: number): string {
+    const factor = 10 ** decimals;
+    const truncated = Math.trunc(value * factor) / factor;
+
+    if (Number.isInteger(truncated)) {
+      return truncated.toString();
+    }
+
+    return truncated.toFixed(decimals).replace(/\.?0+$/, "");
   }
 
   private parseNumericState(value: string): number | null {

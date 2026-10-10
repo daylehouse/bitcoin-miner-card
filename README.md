@@ -78,6 +78,49 @@ All entities are optional — only configure what your miner exposes. The card g
 
 ---
 
+## 🗄️ RECORDER — INCLUDE-BASED BASELINE
+
+The chart reads from Home Assistant history, so any entity used for `hashrate_entity` and `temperature_entity` (and ideally the others) must be recorded. If you are moving your recorder from `exclude` to `include`, start from this baseline and add your own entities/domains:
+
+```yaml
+recorder:
+  purge_keep_days: 10
+  commit_interval: 5
+  include:
+    # Whole domains worth keeping long-term
+    domains:
+      - person
+      - device_tracker
+      - alarm_control_panel
+    # Globs make it easy to capture every miner sensor
+    entity_globs:
+      - sensor.*hashrate*
+      - sensor.*temp*
+      - sensor.*fan*
+      - sensor.*power*
+      - sensor.*shares*
+      - sensor.*difficulty*
+      - binary_sensor.*overheat*
+      - select.*pool*
+    # Or list your miner entities explicitly (recommended)
+    entities:
+      - sensor.my_miner_hashrate
+      - sensor.my_miner_temperature
+      - sensor.my_miner_fan_speed
+      - sensor.my_miner_power
+  # Excludes still apply on top of includes, e.g. to trim noisy attributes
+  exclude:
+    entity_globs:
+      - sensor.*_uptime
+```
+
+Tips:
+- Once `include` is used, **anything not matched is no longer recorded** — including the energy dashboard sensors, so add those too.
+- Text entities (pool URL, port, model, IP) are only needed in the ticker and do not need history.
+- Restart Home Assistant after changing `recorder`; history is not back-filled for newly included entities.
+
+---
+
 ## 🏆 HIGH SCORE
 
 If your miner sets a new all-time best difficulty, the card will display it front and centre — fading in over the sun area like a true arcade achievement. Game on.
